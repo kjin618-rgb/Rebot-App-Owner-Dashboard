@@ -1,0 +1,6 @@
+{
+  "name": "리봇(Rebot) AI CRM 대시보드",
+  "description": "카페·베이커리 매장을 위한 AI 구동 고객 관계 관리(CRM) 및 셀프 스탬프 적립 QR 키오스크 시스템",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
