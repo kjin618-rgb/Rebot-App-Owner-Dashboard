@@ -1,4 +1,3 @@
-import url from 'url';
 import {
   getStore,
   updateStore,
@@ -32,8 +31,9 @@ function getRequestBody(req: any): Promise<any> {
 }
 
 export async function handleApiRequest(req: any, res: any): Promise<boolean> {
-  const parsedUrl = url.parse(req.url || '', true);
-  const pathname = parsedUrl.pathname || '';
+  const reqUrl = new URL(req.url || '/', 'http://localhost');
+  const pathname = reqUrl.pathname;
+  const query = reqUrl.searchParams;
   const method = req.method || 'GET';
 
   if (!pathname.startsWith('/api')) return false;
@@ -116,7 +116,7 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
     // 4. GET /api/customers/:store_code
     match = pathname.match(/^\/api\/customers\/([^/]+)$/);
     if (match && method === 'GET') {
-      const filter = (parsedUrl.query.filter as string) || 'all';
+      const filter = query.get('filter') || 'all';
       const list = await getCustomers(match[1], filter);
       sendJson(200, list);
       return true;
@@ -199,7 +199,7 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
     // 10. DELETE /api/messages/:id
     match = pathname.match(/^\/api\/messages\/([^/]+)$/);
     if (match && method === 'DELETE') {
-      const storeCode = (parsedUrl.query.store_code as string) || 'demo';
+      const storeCode = query.get('store_code') || 'demo';
       await deleteMessage(storeCode, match[1]);
       sendJson(200, { success: true });
       return true;
