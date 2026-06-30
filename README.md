@@ -3,7 +3,7 @@
 카페·베이커리용 디지털 스탬프 서비스 **리봇(Rebot)**의 사장님 전용 관리 대시보드입니다.  
 고객 스탬프 현황, 이탈 위험 분석, AI 메시지 생성, SNS 콘텐츠 초안 작성을 한 화면에서 처리합니다.
 
-> **배포 상태**: 로컬 API 검증 완료 · Vercel 재배포 필요  
+> **배포 상태**: Vercel 배포 정상 · Supabase 데이터 연동 정상
 > **상세 이력**: [`DEV_SPEC.md`](./DEV_SPEC.md) 참고
 
 ---
@@ -24,7 +24,7 @@
 | 영역 | 기술 |
 |---|---|
 | Frontend | React 19, TypeScript, Vite 6, Tailwind CSS v4 |
-| 서버리스 API | Vercel Serverless Function (`api/handler.ts`) |
+| 서버리스 API | Vercel Serverless Function (`api/handler.js`) |
 | 로컬 서버 | Express.js (`server.ts`) |
 | Database | Supabase (PostgreSQL), service_role 키 |
 | AI | OpenRouter `google/gemini-2.0-flash-lite` → Gemini SDK → 템플릿 폴백 |
@@ -78,11 +78,11 @@ SUPABASE_SERVICE_ROLE_KEY
 ### 배포 구조
 
 ```
-빌드: npm run build (vite build)
+빌드: npm run build
 프론트엔드 출력: dist/
-API 함수: api/handler.ts → Vercel 서버리스 함수로 자동 인식
+API 함수: src/serverless/handler.ts → esbuild 번들 → api/handler.js
 라우팅:
-  /api/* → api/handler.ts
+  /api/* → api/handler.js
   그 외  → dist/index.html (SPA)
 ```
 
@@ -92,8 +92,10 @@ API 함수: api/handler.ts → Vercel 서버리스 함수로 자동 인식
 
 ```
 api/
-└── handler.ts          # Vercel 서버리스 함수 (모든 API 라우팅)
+└── handler.js          # Vercel 서버리스 함수 번들
 src/
+├── serverless/
+│   └── handler.ts      # API 함수 원본 엔트리
 ├── lib/
 │   ├── supabase.ts     # Supabase 클라이언트 싱글턴
 │   ├── db-server.ts    # DB CRUD (서버 전용)
@@ -130,9 +132,27 @@ vercel.json             # Vercel 배포 설정
 
 현재 MVP는 `store_code`로 매장을 찾고, 연결된 `store_id` 기준으로 고객·메시지·콘텐츠 데이터를 표시합니다.
 
+현재 배포 검증 결과:
+- `/api/store/cafe-rebot` → `200`
+- `/api/dashboard/cafe-rebot` → `200`, `total_customers: 2`
+- `/api/customers/cafe-rebot` → `200`, 고객 2명 반환
+
 Phase 2에서:
 - 매장별 로그인/인증 추가
 - 각 사장님이 자기 매장 데이터만 열람 가능하도록 수정
+
+---
+
+## 최종 개발 내역
+
+- Supabase service_role 기반 서버 API 연결
+- 고객용 앱에서 저장한 `store_code`/`store_id` 기준 데이터 조회
+- 대시보드, 고객 목록, 고객 상세, 방문 로그, 메시지, 콘텐츠 API 구현
+- Vercel 서버리스 함수 번들링 문제 해결
+  - 기존 문제: Vercel 런타임에서 `/var/task/src/lib/api-handlers` 모듈을 찾지 못해 `FUNCTION_INVOCATION_FAILED` 발생
+  - 해결: `src/serverless/handler.ts`를 esbuild로 단일 파일 번들링해 `api/handler.js`로 배포
+- 루트/잘못된 경로 접속 시 `/dashboard/cafe-rebot`으로 이동
+- 더미 대시보드 수치 제거, Supabase 실제 데이터 기준 표시
 
 ---
 

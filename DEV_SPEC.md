@@ -1,7 +1,7 @@
 # Rebot 사장님 대시보드 — 개발 명세서
 
 > 마지막 업데이트: 2026-06-30  
-> 현재 상태: **로컬 API 검증 완료** (Supabase 데이터 매장별 조회 정상, Vercel 재배포 필요)
+> 현재 상태: **Vercel 배포 정상** (Supabase 데이터 매장별 조회 정상)
 
 ---
 
@@ -23,7 +23,7 @@
 | 영역 | 기술 |
 |---|---|
 | Frontend | React 19, TypeScript, Vite 6, Tailwind CSS v4 |
-| 서버리스 API | Vercel Serverless Function (`api/handler.ts`) |
+| 서버리스 API | Vercel Serverless Function (`api/handler.js`) |
 | 로컬 개발 서버 | Express.js (`server.ts`) |
 | Database | Supabase (PostgreSQL), service_role 키 |
 | AI | OpenRouter (`google/gemini-2.0-flash-lite`) → Gemini SDK → 템플릿 폴백 |
@@ -37,11 +37,13 @@
 ```
 /
 ├── api/
-│   └── handler.ts          # Vercel 서버리스 함수 진입점
+│   └── handler.js          # Vercel 서버리스 함수 번들
 ├── src/
 │   ├── App.tsx             # 라우팅 + 페이지 진입점
 │   ├── main.tsx
 │   ├── index.css
+│   ├── serverless/
+│   │   └── handler.ts      # 서버리스 함수 원본 엔트리
 │   ├── types/
 │   │   └── index.ts        # Store, Customer, VisitLog, Message 등 타입 정의
 │   ├── lib/
@@ -160,7 +162,7 @@ content_drafts (
 
 ## 5. API 엔드포인트
 
-모든 API는 `/api/handler.ts` 서버리스 함수에서 처리. 라우팅 로직은 `src/lib/api-handlers.ts`.
+모든 API는 번들된 `/api/handler.js` 서버리스 함수에서 처리한다. 원본 엔트리는 `src/serverless/handler.ts`, 라우팅 로직은 `src/lib/api-handlers.ts`.
 
 | Method | Endpoint | 설명 |
 |---|---|---|
@@ -229,40 +231,49 @@ export async function getCustomers(storeCode: string, ...) {
 - `cafe01`: 고객 2명
 - `sweet-bakery`: 고객 1명
 
+현재 Vercel 배포 검증 결과:
+- `/api/store/cafe-rebot`: `200`
+- `/api/dashboard/cafe-rebot`: `200`, `total_customers: 2`
+- `/api/customers/cafe-rebot`: `200`, 고객 2명 반환
+
 ---
 
-## 8. 디버깅 이력 및 미해결 이슈
+## 8. 디버깅 이력 및 해결 내역
 
 ### 8-1. 해결된 이슈
 
 | 문제 | 원인 | 해결 |
 |---|---|---|
 | `/api/*` 요청이 SPA fallback에 걸려 HTML 반환 | `vercel.json` rewrite 패턴이 `/api/` 포함 | `/((?!api/).*)` 부정 전방탐색 패턴으로 수정 |
-| 고객 데이터 미표시 (store_id 불일치) | 고객 앱은 `cafe-rebot` 사용, 대시보드는 `cafe01` 사용 | MVP: store_id 필터 전체 제거 |
+| 고객 데이터 미표시 (store_code 불일치) | 고객 앱은 `cafe-rebot` 사용, 대시보드는 `cafe01` 사용 | 기본 진입을 `/dashboard/cafe-rebot`으로 변경하고 `store_id` 필터 정상 적용 |
 | TypeScript 빌드 에러 (`choices` is not a function) | `res.json()` 반환 타입이 `unknown` | `as any` 캐스팅 추가 |
 | `import 'dotenv/config'` 크래시 | Vercel에 `.env` 파일 없음 | import 제거 (Vercel은 `process.env` 직접 제공) |
 | `@google/genai` 모듈 로드 크래시 | 최상위 static import가 서버리스 번들에서 실패 | `async function` 내 dynamic import로 변경 |
 | `url.parse()` 런타임 에러 가능성 | deprecated API, 번들러 환경에서 불안정 | WHATWG `new URL()` 생성자로 교체 |
+| `/var/task/src/lib/api-handlers` 모듈 누락 | Vercel이 TS 서버리스 함수를 번들링하지 않고 JS 변환만 수행 | `src/serverless/handler.ts`를 esbuild로 `api/handler.js` 단일 번들 생성 |
 
-### 8-2. 해결 진행 중 이슈 — Vercel 재배포 확인 필요
+### 8-2. 최종 해결 이슈 — Vercel 서버리스 번들링
 
 **기존 증상**: `/api/store/cafe-rebot` 등 API 호출 시 `500: FUNCTION_INVOCATION_FAILED`
 
-**근본 원인** (Vercel 런타임 로그에서 확인):
+**Vercel 런타임 로그**:
 ```
-Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/src/lib/db-server'
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/src/lib/api-handlers'
 imported from /var/task/api/handler.js
 ```
 
 **원인 분석**:
-- `api/handler.ts`가 `../src/lib/db-server` 등을 import
-- Vercel이 `api/handler.ts` → `api/handler.js`로 컴파일할 때 **번들링을 하지 않음**
-- 컴파일된 `api/handler.js`는 `../src/lib/db-server`를 그대로 참조
+- `api/handler.ts`가 `../src/lib/api-handlers` 등을 import
+- Vercel이 `api/handler.ts` → `api/handler.js`로 변환할 때 **번들링을 하지 않음**
+- 컴파일된 `api/handler.js`는 `../src/lib/api-handlers`를 그대로 참조
 - 배포 환경(`/var/task/`)에는 `src/lib/` 디렉토리가 없음 → 모듈 못 찾음
-- `api/tsconfig.json`에 `"noEmit": false`가 있으면 Vercel이 tsc(번들링 X)를 사용
-- `api/tsconfig.json` 삭제 후 Vercel 자체 esbuild(번들링 O)를 사용하도록 변경
-- `api/handler.ts`가 전체 API 라우터(`handleApiRequest`)를 호출하도록 수정
-- 로컬 검증 완료: `/api/dashboard/cafe-rebot`, `/api/customers/cafe-rebot` 정상 응답
+
+**최종 해결**:
+- `api/handler.ts`를 Vercel 엔트리에서 제거
+- 원본 엔트리를 `src/serverless/handler.ts`로 이동
+- `npm run build` 실행 시 `npm run build:api`가 먼저 실행되도록 변경
+- `build:api`에서 esbuild가 `src/serverless/handler.ts`와 `src/lib/*` 의존성을 단일 파일 `api/handler.js`로 번들링
+- Vercel은 번들된 `api/handler.js`만 실행하므로 `/var/task/src/lib/*` 모듈 탐색 문제가 사라짐
 
 **시도한 접근들**:
 
@@ -270,44 +281,8 @@ imported from /var/task/api/handler.js
 2. `api/handler.ts` + `vercel.json` rewrite → tsc로 컴파일되어 번들링 없이 배포됨
 3. esbuild 빌드 스크립트 → Windows 바이너리 캐시 문제로 Linux에서 실행 불가
 4. `api/tsconfig.json` (`"noEmit": false`) 추가 → Vercel이 tsc 사용, 번들링 안 됨
-5. **`api/tsconfig.json` 삭제** (마지막 커밋) → Vercel이 esbuild 사용해 번들링할 것으로 기대
-
-### 8-3. 다음 시도 방법 (우선순위 순)
-
-#### 방법 A — `api/tsconfig.json` 삭제 결과 확인 (현재 상태)
-```
-# 이미 커밋됨 (dd645e2), 배포 결과 확인만 필요
-https://rebot-app-owner-dashboard.vercel.app/api/store/cafe-rebot
-```
-
-#### 방법 B — esbuild 빌드 스크립트 (방법 A 실패 시)
-```json
-// package.json
-"build": "vite build && node -e \"require('child_process').execSync('npm install @esbuild/linux-x64 --save-dev --legacy-peer-deps 2>/dev/null || true', {stdio:\\\"inherit\\\"})\""
-```
-또는 `package.json` build script에 esbuild 추가 + Vercel 빌드 캐시 초기화:
-```json
-"build": "vite build && npx --yes esbuild@0.25.4 api/handler.ts --bundle --platform=node --target=node20 --format=esm --outfile=api/handler.js --packages=external"
-```
-
-#### 방법 C — `api/handler.ts`를 완전 자립형 파일로 작성
-- `src/lib/` 의존성 제거
-- `@supabase/supabase-js` 직접 import만 사용
-- DB 쿼리 로직, 라우팅 로직 모두 `api/handler.ts`에 인라인
-- 가장 안정적이나 코드량 많음
-
-#### 방법 D — Vercel `includeFiles` 설정
-```json
-// vercel.json
-{
-  "functions": {
-    "api/handler.ts": {
-      "includeFiles": "src/lib/**"
-    }
-  }
-}
-```
-단, TypeScript 파일이 포함되므로 별도 컴파일 필요.
+5. `api/tsconfig.json` 삭제 → Vercel 기본 처리 기대했으나 `src/lib/api-handlers` 모듈 누락으로 실패
+6. **최종 해결**: esbuild 명시 번들 `api/handler.js` 생성 후 배포
 
 ---
 
@@ -322,7 +297,7 @@ npm run dev     # Vite dev 서버 (포트 3000)
 npm run start   # Express 서버 (API + 정적 파일 포함)
 ```
 
-로컬에서는 Express(`server.ts`)가 API 요청 처리. Vercel 배포 시 `api/handler.ts`가 동일한 역할.
+로컬에서는 Express(`server.ts`)가 API 요청 처리. Vercel 배포 시 번들된 `api/handler.js`가 동일한 역할.
 
 ---
 
