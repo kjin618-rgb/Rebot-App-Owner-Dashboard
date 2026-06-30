@@ -1,19 +1,23 @@
-import { handleApiRequest } from '../src/lib/api-handlers';
+import { getStore } from '../src/lib/db-server';
 
 export default async function handler(req: any, res: any) {
   try {
-    const handled = await handleApiRequest(req, res);
-    if (!handled && !res.headersSent) {
-      res.statusCode = 404;
+    const reqUrl = new URL(req.url, 'http://localhost');
+    const path = reqUrl.pathname;
+    const m = path.match(/^\/api\/store\/([^/]+)$/);
+    if (m) {
+      const store = await getStore(m[1]);
+      res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'API route not found', url: req.url }));
+      res.end(JSON.stringify(store));
+      return;
     }
+    res.statusCode = 404;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ error: 'not found', path }));
   } catch (err: any) {
-    console.error('[Serverless] API error:', err);
-    if (!res.headersSent) {
-      res.statusCode = 500;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: err.message, stack: err.stack?.split('\n').slice(0, 3).join(' | ') }));
-    }
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ error: String(err?.message ?? err) }));
   }
 }
