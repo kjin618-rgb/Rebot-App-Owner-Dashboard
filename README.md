@@ -145,14 +145,41 @@ Phase 2에서:
 
 ## 최종 개발 내역
 
-- Supabase service_role 기반 서버 API 연결
-- 고객용 앱에서 저장한 `store_code`/`store_id` 기준 데이터 조회
-- 대시보드, 고객 목록, 고객 상세, 방문 로그, 메시지, 콘텐츠 API 구현
-- Vercel 서버리스 함수 번들링 문제 해결
+### 2026-06-30 작업 요약
+
+- **Supabase 실데이터 연동**
+  - 고객용 앱과 동일 Supabase 프로젝트를 공유하도록 서버 API 연결
+  - `store_code → stores.id → store_id` 기준으로 고객·방문·메시지·콘텐츠 데이터 조회
+  - `cafe-rebot`, `cafe01`, `sweet-bakery` 데이터가 매장별로 분리 조회되는 것 확인
+
+- **대시보드 API 복구**
+  - `/api/store/:storeCode`
+  - `/api/dashboard/:storeCode`
+  - `/api/customers/:storeCode`
+  - `/api/customers/:storeCode/:id`
+  - `/api/messages/:storeCode`
+  - `/api/content/:storeCode`
+  - `/api/settings/:storeCode`
+  - `/api/metrics/:storeCode`
+
+- **Vercel 서버리스 함수 문제 해결**
   - 기존 문제: Vercel 런타임에서 `/var/task/src/lib/api-handlers` 모듈을 찾지 못해 `FUNCTION_INVOCATION_FAILED` 발생
   - 해결: `src/serverless/handler.ts`를 esbuild로 단일 파일 번들링해 `api/handler.js`로 배포
-- 루트/잘못된 경로 접속 시 `/dashboard/cafe-rebot`으로 이동
-- 더미 대시보드 수치 제거, Supabase 실제 데이터 기준 표시
+  - `npm run build` 실행 시 `npm run build:api`가 먼저 실행되도록 구성
+
+- **프론트 라우팅 및 표시 데이터 정리**
+  - 루트/잘못된 경로 접속 시 `/dashboard/cafe-rebot`으로 이동
+  - 더미 대시보드 수치 제거
+  - Supabase 실제 데이터 기준으로 고객 수, 최근 활동, 이탈 단계 표시
+
+- **배포 검증 완료**
+  - `/api/store/cafe-rebot` → `200`
+  - `/api/dashboard/cafe-rebot` → `200`, `total_customers: 2`
+  - `/api/customers/cafe-rebot` → `200`, 고객 2명 반환
+
+- **문서 업데이트**
+  - `README.md`, `DEV_SPEC.md`에 최종 배포 상태와 API 구조 반영
+  - `rebot-planning-doc/index.html`에 고객용 앱과 사장님 대시보드의 최신 개발 현황 반영
 
 ---
 
