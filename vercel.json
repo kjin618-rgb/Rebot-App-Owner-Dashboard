@@ -2,15 +2,14 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/[...route].ts": {
-      "memory": 512,
+    "api/handler.js": {
       "maxDuration": 30
     }
   },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/[...route]"
+      "destination": "/api/handler"
     },
     {
       "source": "/((?!api/).*)",
