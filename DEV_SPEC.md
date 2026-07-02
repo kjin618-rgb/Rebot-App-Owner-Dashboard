@@ -1,6 +1,6 @@
 # Rebot 사장님 대시보드 — 개발 명세서
 
-> 마지막 업데이트: 2026-06-30  
+> 마지막 업데이트: 2026-07-02  
 > 현재 상태: **Vercel 배포 정상** (Supabase 데이터 매장별 조회 정상)
 
 ---
@@ -55,7 +55,7 @@
 │   │   ├── prompts.ts      # AI 프롬프트 빌더
 │   │   ├── churn.ts        # 이탈 단계 런타임 계산
 │   │   ├── phone.ts        # 전화번호 마스킹 유틸
-│   │   └── mock.ts         # 목데이터 (미사용)
+│   │   └── mock.ts         # QR 코드 생성(generateQRCode) 및 일부 타입 정의
 │   └── components/
 │       ├── CustomerTable.tsx
 │       ├── MessageList.tsx
@@ -284,6 +284,27 @@ imported from /var/task/api/handler.js
 5. `api/tsconfig.json` 삭제 → Vercel 기본 처리 기대했으나 `src/lib/api-handlers` 모듈 누락으로 실패
 6. **최종 해결**: esbuild 명시 번들 `api/handler.js` 생성 후 배포
 
+### 8-3. QR 코드 정상화 (2026-07-02)
+
+**문제**: `src/lib/mock.ts`의 `generateQRCode()`가 실제 QR을 인코딩하지 않고 QR처럼 보이는 도형을 하드코딩한 장식용 SVG였음 — 스캔 자체가 불가능했고, 위치 마커 좌표 복붙 실수로 도형이 겹쳐 보이는 시각적 버그도 있었음.
+
+**해결**:
+- `qrcode` 라이브러리(`npm i qrcode @types/qrcode`) 도입, 오류 정정 레벨 `H`로 실제 스캔 가능한 SVG QR 생성
+- `generateQRCode(url)`이 URL을 직접 받도록 시그니처 변경 — QR 이미지와 화면에 표시되는 URL 텍스트가 서로 다른 값을 참조할 수 없도록 단일 소스로 통일
+- 인코딩→디코딩 라운드트립 테스트(`jsQR` + `sharp` 래스터화)로 스캔 정확성 검증
+
+**QR 링크 대상 수정**: 처음엔 대시보드 자신의 `/stamp/:storeCode` 라우트(`window.location.origin` 기반)를 가리켰으나, 실제 스탬프 적립 화면은 별도로 배포된 고객용 앱(`Rebot-App-Customer-facing-page`)이 서빙함. QR/URL을 고정 베이스 URL로 변경:
+```
+https://rebot-app-customer-facing-page.vercel.app/:storeCode
+```
+(대시보드를 localhost/사설IP/프로덕션 중 어디서 열든 항상 실제 고객용 앱으로 연결됨)
+
+**레이아웃 오버플로우 수정**: `QRPreview` 카드가 대시보드의 좁은 `lg:col-span-5` 그리드 컬럼 안에 있는데 `md:flex-row`로 QR 이미지+텍스트를 가로 배치하다 보니(브레이크포인트는 뷰포트 기준이라 실제 컬럼 폭과 무관하게 트리거됨) 설명 텍스트·URL 입력창·다운로드 버튼이 카드 밖으로 밀려났음. 항상 세로 스택으로 변경하고 `min-w-0`을 추가해 해결.
+
+### 8-4. WSL(Linux) ↔ Windows 혼합 환경 npm 이슈
+
+`node_modules`가 Windows 쪽 npm install로 채워진 상태에서 WSL(Linux)로 `npm run dev`를 실행하면 `Cannot find module @rollup/rollup-linux-x64-gnu` 에러 발생 (npm의 알려진 optional-dependency 버그, [npm/cli#4828](https://github.com/npm/cli/issues/4828)). `npm install` 재실행으로 리눅스용 네이티브 바이너리가 채워지며 해결됨 — `package-lock.json` 자체는 변경 없음(리눅스 바이너리는 이미 lockfile에 선언되어 있었고 로컬 `node_modules`에만 누락된 상태였음).
+
 ---
 
 ## 9. 로컬 개발 환경
@@ -304,6 +325,7 @@ npm run start   # Express 서버 (API + 정적 파일 포함)
 ## 10. 관련 레포
 
 - **고객용 앱**: https://github.com/kjin618-rgb/Rebot-App-Customer-facing-page
+  - 배포: https://rebot-app-customer-facing-page.vercel.app (`src/components/QRPreview.tsx`의 `CUSTOMER_APP_BASE_URL`에서 참조)
   - 고객이 QR 스캔 후 스탬프 적립
   - 동일 Supabase 프로젝트 사용
   - `store_code` (예: `cafe-rebot`) 기준으로 `stores` 테이블에서 `store_id(UUID)` 조회 후 `customers`에 저장
