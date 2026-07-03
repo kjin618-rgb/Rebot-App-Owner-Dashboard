@@ -11,6 +11,7 @@ function toStore(row: any): Store {
     store_name: row.store_name,
     owner_name: row.owner_name,
     stamp_goal: row.stamp_goal ?? 10,
+    near_completion_threshold: row.near_completion_threshold ?? 80,
     reward_desc: row.reward_desc ?? '',
     brand_color: '#d97706',
     logo_url: null,
@@ -101,6 +102,7 @@ export async function updateStore(storeCode: string, settings: Partial<Store>): 
   if (settings.store_name !== undefined) updates.store_name = settings.store_name;
   if (settings.owner_name !== undefined) updates.owner_name = settings.owner_name;
   if (settings.stamp_goal !== undefined) updates.stamp_goal = settings.stamp_goal;
+  if (settings.near_completion_threshold !== undefined) updates.near_completion_threshold = settings.near_completion_threshold;
   if (settings.reward_desc !== undefined) updates.reward_desc = settings.reward_desc;
   if (settings.message_signature !== undefined) updates.message_signature = settings.message_signature;
 
@@ -127,7 +129,16 @@ export async function getCustomers(storeCode: string, filter: string = 'all'): P
     .order('created_at', { ascending: false });
 
   const customers = (data || []).map(toCustomer);
+
   if (filter === 'all') return customers;
+
+  if (filter === 'near_completion') {
+    return customers.filter(c => {
+      const completionRatio = (c.current_stamps / storeRow.stamp_goal) * 100;
+      return completionRatio >= storeRow.near_completion_threshold;
+    });
+  }
+
   return customers.filter(c => c.churn_stage === filter);
 }
 

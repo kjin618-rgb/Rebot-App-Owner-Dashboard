@@ -5,6 +5,7 @@ export interface Store {
   store_name: string;
   owner_name: string;
   stamp_goal: number;
+  near_completion_threshold: number;
   reward_desc: string;
   brand_color: string;
   logo_url: string | null;
