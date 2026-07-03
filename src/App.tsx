@@ -789,6 +789,21 @@ function MessagesPage() {
       .catch(err => console.error(err));
   };
 
+  const handleRegenerate = (id: string) => {
+    fetch(`/api/messages/${id}/regenerate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ store_code })
+    })
+      .then(res => res.json())
+      .then(() => {
+        setToastMsg('AI 메시지가 새로 재생성되었습니다.');
+        fetchMessagesFromApi();
+        setTimeout(() => setToastMsg(''), 3000);
+      })
+      .catch(err => console.error(err));
+  };
+
   const handleEditClick = (msg: Message) => {
     setEditingMsg(msg);
     setEditContent(msg.content);
@@ -867,11 +882,12 @@ function MessagesPage() {
           <p className="text-xs text-stone-400">초안을 불러오고 있습니다...</p>
         </div>
       ) : (
-        <MessageList 
-          messages={messages} 
-          onSend={handleSend} 
-          onDelete={handleDelete} 
-          onEdit={handleEditClick} 
+        <MessageList
+          messages={messages}
+          onSend={handleSend}
+          onDelete={handleDelete}
+          onEdit={handleEditClick}
+          onRegenerate={handleRegenerate}
         />
       )}
     </div>
