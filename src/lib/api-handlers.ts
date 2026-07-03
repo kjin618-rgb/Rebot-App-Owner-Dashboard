@@ -10,6 +10,7 @@ import {
   patchMessage,
   deleteMessage,
   getMessageCustomerId,
+  updateCustomerNotes,
   getSavedContentDrafts,
   saveContentDraft,
 } from './db-server';
@@ -135,6 +136,25 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
       const detail = await getCustomerById(match[1], match[2]);
       if (!detail) { sendJson(404, { error: 'Customer not found' }); return true; }
       sendJson(200, detail);
+      return true;
+    }
+
+    // 5-1. PATCH /api/customers/:id
+    match = pathname.match(/^\/api\/customers\/([^/]+)$/);
+    if (match && method === 'PATCH') {
+      const body = await getRequestBody(req);
+      const { store_code, notes } = body;
+      if (!store_code) { sendJson(400, { error: 'store_code is required' }); return true; }
+      if (typeof notes !== 'string' || notes.length > 500) {
+        sendJson(400, { error: 'notes must be a string of 500 characters or fewer' });
+        return true;
+      }
+      try {
+        const updated = await updateCustomerNotes(store_code, match[1], notes);
+        sendJson(200, updated);
+      } catch (err: any) {
+        sendJson(404, { error: err.message });
+      }
       return true;
     }
 
