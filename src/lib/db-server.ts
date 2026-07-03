@@ -351,6 +351,26 @@ export async function patchMessage(storeCode: string, id: string, updates: Parti
   return toMessage(data);
 }
 
+export async function updateCustomerNotes(storeCode: string, customerId: string, notes: string): Promise<Customer> {
+  if (notes.length > 500) {
+    throw new Error('메모는 500자를 초과할 수 없습니다.');
+  }
+
+  const storeRow = await getStoreRow(storeCode);
+  if (!storeRow) throw new Error('Store not found');
+
+  const { data } = await getSupabase()
+    .from('customers')
+    .update({ notes })
+    .eq('id', customerId)
+    .eq('store_id', storeRow.id)
+    .select()
+    .single();
+
+  if (!data) throw new Error('Customer not found');
+  return toCustomer(data);
+}
+
 export async function deleteMessage(storeCode: string, id: string): Promise<void> {
   const storeRow = await getStoreRow(storeCode);
   if (!storeRow) return;
