@@ -3,16 +3,34 @@ export function buildMessagePrompt(
   churnStage: string,
   rewardDesc: string,
   storeName: string,
-  signature: string
+  signature: string,
+  totalVisits: number,
+  daysSinceLastVisit: number | null,
+  currentStamps: number,
+  stampGoal: number,
 ): string {
-  return `당신은 카페/베이커리 매장인 "${storeName}"의 친절한 사장님입니다.
-고객 "${customerName}"님은 현재 이탈 단계가 "${churnStage}" 상태입니다.
-매장의 리워드 혜택: "${rewardDesc}"
-서명: "${signature}"
+  const lastVisitLine = daysSinceLastVisit !== null
+    ? `\n- 마지막 방문: ${daysSinceLastVisit}일 전`
+    : '';
 
-위 정보를 바탕으로 고객의 재방문을 유도하기 위한 개인화된 마케팅 메시지 초안을 작성해주세요.
-자연스럽고 친근한 한국어로 작성하며, 너무 스팸처럼 느껴지지 않고 진심어린 혜택 안내를 포함해야 합니다.
-메시지 본문 내용만 텍스트로 반환해주세요.`;
+  return `당신은 카페/베이커리 매장 "${storeName}"을 운영하는 사장님입니다.
+아래 고객 정보를 참고해 이 고객에게 보낼 재방문 유도 메시지를 작성해주세요.
+
+[고객 정보]
+- 이름: ${customerName}
+- 이탈 단계: ${churnStage} (safe: 최근 방문, watch: 관심 필요, danger: 이탈 위험, churned: 장기 미방문)
+- 총 방문 횟수: ${totalVisits}회${lastVisitLine}
+- 현재 스탬프: ${currentStamps}/${stampGoal}개
+- 매장 리워드: ${rewardDesc}
+
+[작성 규칙 — 반드시 지킬 것]
+1. 한국어 존댓말, 사장님이 직접 안부를 묻는 듯한 자연스러운 톤으로 작성한다.
+2. 전체 분량은 2~3문장 이내로 작성한다 (카카오 알림톡 발송을 고려).
+3. 특정 메뉴명이나 결제 금액을 직접 언급하지 않는다.
+4. 과도한 친밀감이나 "감시받는 느낌"을 주는 표현(예: 방문 횟수를 지적하는 뉘앙스)은 피한다.
+5. 마지막은 매장명 또는 아래 서명으로 마무리한다: "${signature}"
+
+메시지 본문만 반환하세요 (따옴표나 설명 없이).`;
 }
 
 export function buildPostPrompt(
