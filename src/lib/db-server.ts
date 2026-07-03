@@ -28,7 +28,8 @@ function toCustomer(row: any): Customer {
     churn_stage: lastVisit ? calcChurn([lastVisit]) : 'churned',
     last_visit_at: lastVisit,
     total_visits: row.total_visits ?? 0,
-    total_stamps: row.current_stamps ?? 0,
+    current_stamps: row.current_stamps ?? 0,
+    total_stamps: row.total_stamps ?? 0,
     marketing_consent: row.marketing_consent ?? false,
     marketing_consent_at: row.marketing_consent_at ?? null,
     notes: row.notes ?? null,
@@ -63,7 +64,7 @@ function toMessage(row: any): Message {
 }
 
 // store_code → 내부 stores row (UUID id 포함)
-async function getStoreRow(storeCode: string) {
+export async function getStoreRow(storeCode: string) {
   const { data } = await getSupabase()
     .from('stores')
     .select('*')
@@ -201,7 +202,7 @@ export async function addStamp(storeCode: string, phone: string, count: number =
         phone_masked: maskPhone(cleanPhone),
         marketing_consent: true,
         marketing_consent_at: nowStr,
-        current_stamps: count,
+        current_stamps: count % storeRow.stamp_goal,
         total_stamps: count,
         total_visits: 1,
         last_visit_at: nowStr,
@@ -210,11 +211,12 @@ export async function addStamp(storeCode: string, phone: string, count: number =
       .single();
     customerRow = data;
   } else {
+    const newTotalStamps = existing.total_stamps + count;
     const { data } = await getSupabase()
       .from('customers')
       .update({
-        current_stamps: existing.current_stamps + count,
-        total_stamps: existing.total_stamps + count,
+        current_stamps: newTotalStamps % storeRow.stamp_goal,
+        total_stamps: newTotalStamps,
         total_visits: existing.total_visits + 1,
         last_visit_at: nowStr,
       })
@@ -273,11 +275,13 @@ export async function recordManualVisit(
     .limit(1)
     .single();
 
+  const newTotalStamps = existing.total_stamps + stamps;
+
   const { data } = await getSupabase()
     .from('customers')
     .update({
-      current_stamps: existing.current_stamps + stamps,
-      total_stamps: existing.total_stamps + stamps,
+      current_stamps: newTotalStamps % storeRow.stamp_goal,
+      total_stamps: newTotalStamps,
       total_visits: existing.total_visits + 1,
       last_visit_at: latestLog?.visited_at ?? visitedAtStr,
     })
