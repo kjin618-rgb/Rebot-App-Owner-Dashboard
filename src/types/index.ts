@@ -33,6 +33,7 @@ export interface VisitLog {
   customer_id: string;
   occurred_at: string;
   stamps_earned: number;
+  menu: string | null;
 }
 
 export interface Message {

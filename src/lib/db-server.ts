@@ -42,6 +42,7 @@ function toVisitLog(row: any): VisitLog {
     customer_id: row.customer_id,
     occurred_at: row.visited_at ?? row.created_at,
     stamps_earned: row.stamps_earned ?? 1,
+    menu: row.menu ?? null,
   };
 }
 
