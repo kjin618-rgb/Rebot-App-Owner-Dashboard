@@ -196,7 +196,7 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
         store.message_signature,
         detail.customer.total_visits,
         calcDaysSince(detail.customer.last_visit_at),
-        detail.customer.total_stamps,
+        detail.customer.current_stamps,
         store.stamp_goal,
       );
       const newMsg = await addMessageDraft(store_code, customer_id, content);
@@ -262,7 +262,7 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
           store.message_signature,
           detail.customer.total_visits,
           calcDaysSince(detail.customer.last_visit_at),
-          detail.customer.total_stamps,
+          detail.customer.current_stamps,
           store.stamp_goal,
         );
 

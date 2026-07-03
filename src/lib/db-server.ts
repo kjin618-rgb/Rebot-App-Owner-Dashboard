@@ -28,7 +28,8 @@ function toCustomer(row: any): Customer {
     churn_stage: lastVisit ? calcChurn([lastVisit]) : 'churned',
     last_visit_at: lastVisit,
     total_visits: row.total_visits ?? 0,
-    total_stamps: row.current_stamps ?? 0,
+    current_stamps: row.current_stamps ?? 0,
+    total_stamps: row.total_stamps ?? 0,
     marketing_consent: row.marketing_consent ?? false,
     marketing_consent_at: row.marketing_consent_at ?? null,
     notes: row.notes ?? null,
@@ -63,7 +64,7 @@ function toMessage(row: any): Message {
 }
 
 // store_code → 내부 stores row (UUID id 포함)
-async function getStoreRow(storeCode: string) {
+export async function getStoreRow(storeCode: string) {
   const { data } = await getSupabase()
     .from('stores')
     .select('*')

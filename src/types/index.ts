@@ -19,6 +19,7 @@ export interface Customer {
   churn_stage: ChurnStage;
   last_visit_at: string | null;
   total_visits: number;
+  current_stamps: number;
   total_stamps: number;
   marketing_consent: boolean;
   marketing_consent_at: string | null;
