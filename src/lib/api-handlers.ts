@@ -9,10 +9,17 @@ import {
   addMessageDraft,
   patchMessage,
   deleteMessage,
+  getMessageCustomerId,
   getSavedContentDrafts,
   saveContentDraft,
 } from './db-server';
 import { generateAIMessage, generateAIPost } from './ai-server';
+
+function calcDaysSince(dateStr: string | null): number | null {
+  if (!dateStr) return null;
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
 
 function getRequestBody(req: any): Promise<any> {
   return new Promise((resolve) => {
@@ -162,11 +169,15 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
       if (!detail) { sendJson(404, { error: 'Customer not found' }); return true; }
 
       const content = await generateAIMessage(
-        detail.customer.name || '고객',
+        detail.customer.name,
         detail.customer.churn_stage,
         store.reward_desc,
         store.store_name,
         store.message_signature,
+        detail.customer.total_visits,
+        calcDaysSince(detail.customer.last_visit_at),
+        detail.customer.total_stamps,
+        store.stamp_goal,
       );
       const newMsg = await addMessageDraft(store_code, customer_id, content);
       sendJson(200, newMsg);
@@ -202,6 +213,44 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
       const storeCode = query.get('store_code') || 'demo';
       await deleteMessage(storeCode, match[1]);
       sendJson(200, { success: true });
+      return true;
+    }
+
+    // 10-1. POST /api/messages/:id/regenerate
+    match = pathname.match(/^\/api\/messages\/([^/]+)\/regenerate$/);
+    if (match && method === 'POST') {
+      const body = await getRequestBody(req);
+      const { store_code } = body;
+      if (!store_code) { sendJson(400, { error: 'store_code is required' }); return true; }
+      const messageId = match[1];
+
+      try {
+        const customerId = await getMessageCustomerId(store_code, messageId);
+        if (!customerId) { sendJson(404, { error: 'Message not found' }); return true; }
+
+        const [detail, store] = await Promise.all([
+          getCustomerById(store_code, customerId),
+          getStore(store_code),
+        ]);
+        if (!detail) { sendJson(404, { error: 'Customer not found' }); return true; }
+
+        const content = await generateAIMessage(
+          detail.customer.name,
+          detail.customer.churn_stage,
+          store.reward_desc,
+          store.store_name,
+          store.message_signature,
+          detail.customer.total_visits,
+          calcDaysSince(detail.customer.last_visit_at),
+          detail.customer.total_stamps,
+          store.stamp_goal,
+        );
+
+        const updated = await patchMessage(store_code, messageId, { content });
+        sendJson(200, updated);
+      } catch (err: any) {
+        sendJson(404, { error: err.message });
+      }
       return true;
     }
 

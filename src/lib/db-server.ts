@@ -361,6 +361,20 @@ export async function deleteMessage(storeCode: string, id: string): Promise<void
     .eq('store_id', storeRow.id);
 }
 
+export async function getMessageCustomerId(storeCode: string, id: string): Promise<string | null> {
+  const storeRow = await getStoreRow(storeCode);
+  if (!storeRow) return null;
+
+  const { data } = await getSupabase()
+    .from('messages')
+    .select('customer_id')
+    .eq('id', id)
+    .eq('store_id', storeRow.id)
+    .single();
+
+  return data?.customer_id ?? null;
+}
+
 // ─── Content Drafts ───────────────────────────────────────────────────────────
 
 export async function getSavedContentDrafts(storeCode: string): Promise<any[]> {

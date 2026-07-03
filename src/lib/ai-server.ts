@@ -20,44 +20,60 @@ async function getGeminiClient(): Promise<any | null> {
 }
 
 // Fallback high-quality template generators when APIs are not configured
-function getFallbackMessage(customerName: string, churnStage: string, rewardDesc: string, storeName: string, signature: string): string {
-  if (churnStage === 'danger') {
-    return `[${storeName}] ${customerName} 고객님, 안녕하세요.
-한동안 매장에 발걸음이 뜸하셔서 많이 서운하고 안부가 궁금한 마음에 메시지 드립니다. 😢
+// 감정 호소(서운함/그리움/걱정) 대신 담백한 인사 + 명확한 혜택/명분 중심으로 작성한다 (2026-07-03 톤 리비전).
+function getFallbackMessage(customerName: string | null, churnStage: string, rewardDesc: string, storeName: string, signature: string): string {
+  const greeting = customerName ? `${customerName} 고객님` : '고객님';
+  const intro = `${greeting}, 안녕하세요.\n${storeName}입니다.\n\n`;
 
-저희를 잊지 않고 찾아주시는 마음에 보답하고자 특별한 선물을 준비했어요. 
-이번 주 중 매장에 방문해주시면 따뜻한 위로가 될 수 있는 [시그니처 아메리카노 또는 소금빵 1개 무료 제공] 혜택을 드립니다!
+  if (churnStage === 'danger') {
+    return `${intro}그동안 ${storeName}를 찾아주셔서 감사드립니다.
+고객님께 다시 기분 좋은 시간을 전해드리고자 재방문 혜택을 준비했습니다.
 
 * 매장 혜택 리워드: ${rewardDesc}
+* 추가 혜택: 이번 주 방문 시 시그니처 아메리카노 또는 소금빵 1개 무료 제공
 
-바쁜 일상 중 잠시 여유를 누리실 수 있도록 정성껏 구운 빵과 신선한 커피로 기다리고 있겠습니다.
+따뜻하게 구운 빵과 신선한 커피를 준비해두겠습니다.
+근처에 오실 때 편하게 들러주세요.
 
 ${signature}`;
   } else if (churnStage === 'watch') {
-    return `[${storeName}] ${customerName} 고객님, 늘 감사드립니다.
-최근 날씨가 참 좋은데, 건강히 잘 지내고 계시나요? 
+    return `${intro}지난번 방문해주셔서 감사드립니다.
+고객님께 더 기분 좋은 방문이 될 수 있도록 이번 주 재방문 혜택을 준비했습니다.
 
-요즘 매장에 맛있는 신메뉴들이 가득 채워져 있는데, 오랜만에 고객님 생각이 나서 소식 전합니다. 
-이번 주 내에 매장에 들러주시면 스탬프를 2배로 적립해 드리는 특별 이벤트를 제공해 드리려고 해요! ⭐️
+* 매장 혜택 리워드: ${rewardDesc}
+* 추가 혜택: 이번 주 방문 시 스탬프 2배 적립
+
+따뜻하게 구운 빵과 커피를 준비해두겠습니다.
+근처에 오실 때 편하게 들러주세요.
+
+${signature}`;
+  } else if (churnStage === 'safe') {
+    return `${intro}지난번 ${storeName}를 찾아주셔서 진심으로 감사드립니다.
+고객님께 반가운 소식을 전해드리고 싶어 연락드렸습니다.
+고객님께 감사한 마음을 담아 재방문 혜택을 준비했습니다.
 
 * 매장 혜택 리워드: ${rewardDesc}
 
-따뜻한 온기가 남아있을 때 드시면 가장 맛있는 저희 빵들 가득 준비해둘 테니, 편하게 찾아주세요. 
+따끈하게 구운 빵과 깊은 풍미의 커피가 준비되어 있으니, 근처에 오실 때 편하게 들러주세요.
+언제든 반갑게 맞이하겠습니다.
 
 ${signature}`;
   } else {
-    return `[${storeName}] ${customerName} 고객님, 오랜만에 인사 올립니다.
-그동안 리봇 베이커리를 기억하고 사랑해 주셔서 진심으로 감사드립니다.
+    return `${intro}오랜만에 방문하셔도 부담 없이 이용하실 수 있도록 재방문 감사 혜택을 준비했습니다.
 
-마지막으로 방문해 주신 지 시간이 제법 흘러, 혹시 매장에 불편한 점이 있으셨던 건 아닐까 걱정 반, 그리움 반으로 소식을 전합니다.
-고객님을 위해 특별히 마련한 음료 무료 시음 쿠폰과 함께, 따끈하게 구운 대표 빵 세트를 준비했습니다.
+* ${rewardDesc}
+* 이번 주 방문 시 대표 빵 1개 추가 증정
 
-* 매장 혜택 리워드: ${rewardDesc}
-
-조용하고 아늑한 매장에서 깊은 풍미의 커피와 함께 일상의 피로를 풀고 가세요. 언제든 환영합니다!
+근처에 오실 때 편하게 들러주세요.
 
 ${signature}`;
   }
+}
+
+// 법정 표기(광고 태그, 무료수신거부)는 AI/폴백 생성 결과에 맡기지 않고 항상 코드에서 고정으로 부착한다.
+// 무료수신거부 번호는 현재 매장별 설정값이 없어 하드코딩된 플레이스홀더를 사용한다.
+function wrapWithComplianceNotice(storeName: string, body: string): string {
+  return `(광고) ${storeName}\n${body}\n\n무료수신거부: 080-000-0000`;
 }
 
 function getFallbackPost(purpose: string, details: string, benefit: string, duration: string, tone: string, emphasis: string, storeName: string) {
@@ -70,14 +86,23 @@ function getFallbackPost(purpose: string, details: string, benefit: string, dura
 }
 
 export async function generateAIMessage(
-  customerName: string,
+  customerName: string | null,
   churnStage: string,
   rewardDesc: string,
   storeName: string,
-  signature: string
+  signature: string,
+  totalVisits: number,
+  daysSinceLastVisit: number | null,
+  currentStamps: number,
+  stampGoal: number,
 ): Promise<string> {
-  const prompt = buildMessagePrompt(customerName, churnStage, rewardDesc, storeName, signature);
-  
+  const prompt = buildMessagePrompt(
+    customerName, churnStage, rewardDesc, storeName, signature,
+    totalVisits, daysSinceLastVisit, currentStamps, stampGoal,
+  );
+
+  let body: string | null = null;
+
   // 1. Try OpenRouter if key is available
   if (process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY !== 'MY_OPENROUTER_API_KEY') {
     try {
@@ -95,7 +120,7 @@ export async function generateAIMessage(
       if (res.ok) {
         const data = await res.json() as any;
         const text = data.choices?.[0]?.message?.content;
-        if (text) return text.trim();
+        if (text) body = text.trim();
       }
     } catch (e) {
       console.error('OpenRouter generation failed, trying Gemini', e);
@@ -103,23 +128,29 @@ export async function generateAIMessage(
   }
 
   // 2. Try native Gemini client
-  const gemini = await getGeminiClient();
-  if (gemini) {
-    try {
-      const response = await gemini.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-      });
-      if (response && response.text) {
-        return response.text.trim();
+  if (!body) {
+    const gemini = await getGeminiClient();
+    if (gemini) {
+      try {
+        const response = await gemini.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+        });
+        if (response && response.text) {
+          body = response.text.trim();
+        }
+      } catch (e) {
+        console.error('Gemini generation failed, falling back to templates', e);
       }
-    } catch (e) {
-      console.error('Gemini generation failed, falling back to templates', e);
     }
   }
 
   // 3. Fallback to templates
-  return getFallbackMessage(customerName, churnStage, rewardDesc, storeName, signature);
+  if (!body) {
+    body = getFallbackMessage(customerName, churnStage, rewardDesc, storeName, signature);
+  }
+
+  return wrapWithComplianceNotice(storeName, body);
 }
 
 export async function generateAIPost(

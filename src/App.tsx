@@ -789,6 +789,21 @@ function MessagesPage() {
       .catch(err => console.error(err));
   };
 
+  const handleRegenerate = (id: string) => {
+    fetch(`/api/messages/${id}/regenerate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ store_code })
+    })
+      .then(res => res.json())
+      .then(() => {
+        setToastMsg('AI 메시지가 새로 재생성되었습니다.');
+        fetchMessagesFromApi();
+        setTimeout(() => setToastMsg(''), 3000);
+      })
+      .catch(err => console.error(err));
+  };
+
   const handleEditClick = (msg: Message) => {
     setEditingMsg(msg);
     setEditContent(msg.content);
@@ -841,6 +856,15 @@ function MessagesPage() {
                 onChange={e => setEditContent(e.target.value)}
                 className="w-full text-sm p-4 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 leading-relaxed whitespace-pre-wrap"
               />
+              <div className={`text-right text-xs font-medium ${editContent.length >= 900 ? 'text-amber-600' : 'text-stone-400'}`}>
+                {editContent.length.toLocaleString()} / 1,000자
+              </div>
+              {editContent.length >= 900 && (
+                <div className="flex items-start gap-2 bg-amber-50 rounded-lg p-3 text-xs text-amber-800 border border-amber-100/60">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+                  <span>메시지는 1,000자 이하로 작성해 주세요. 핵심 내용만 간결하게 정리하면 고객이 더 쉽게 읽을 수 있어요.</span>
+                </div>
+              )}
               <div className="flex justify-end gap-2.5">
                 <button
                   type="submit"
@@ -867,11 +891,12 @@ function MessagesPage() {
           <p className="text-xs text-stone-400">초안을 불러오고 있습니다...</p>
         </div>
       ) : (
-        <MessageList 
-          messages={messages} 
-          onSend={handleSend} 
-          onDelete={handleDelete} 
-          onEdit={handleEditClick} 
+        <MessageList
+          messages={messages}
+          onSend={handleSend}
+          onDelete={handleDelete}
+          onEdit={handleEditClick}
+          onRegenerate={handleRegenerate}
         />
       )}
     </div>

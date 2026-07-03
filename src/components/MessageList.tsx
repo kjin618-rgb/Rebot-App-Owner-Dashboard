@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { Message, ChurnStage } from '../types';
 import { CHURN_COLOR, CHURN_LABEL } from '../lib/churn';
-import { MessageSquare, Send, Trash2, Edit3, Calendar, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { MessageSquare, Send, Trash2, Edit3, Calendar, AlertTriangle, ShieldAlert, RefreshCw } from 'lucide-react';
 
 interface MessageListProps {
   messages: Message[];
   onSend: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (msg: Message) => void;
+  onRegenerate: (id: string) => void;
 }
 
-export default function MessageList({ messages, onSend, onDelete, onEdit }: MessageListProps) {
+export default function MessageList({ messages, onSend, onDelete, onEdit, onRegenerate }: MessageListProps) {
   const [activeTab, setActiveTab] = useState<'draft' | 'sent'>('draft');
 
   const filteredMessages = messages.filter((msg) => msg.status === activeTab);
@@ -106,6 +107,13 @@ export default function MessageList({ messages, onSend, onDelete, onEdit }: Mess
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       삭제
+                    </button>
+                    <button
+                      onClick={() => onRegenerate(msg.id)}
+                      className="px-3.5 py-2 text-xs font-medium rounded-lg text-stone-500 hover:text-amber-700 hover:bg-amber-50 hover:border-amber-100 transition-all border border-stone-200 flex items-center gap-1.5"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      재생성
                     </button>
                     <button
                       onClick={() => onEdit(msg)}
