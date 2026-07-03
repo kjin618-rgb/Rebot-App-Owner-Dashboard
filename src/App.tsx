@@ -1080,6 +1080,7 @@ function SettingsPage() {
   const [storeName, setStoreName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [stampGoal, setStampGoal] = useState(10);
+  const [nearCompletionThreshold, setNearCompletionThreshold] = useState(80);
   const [rewardDesc, setRewardDesc] = useState('');
   const [signature, setSignature] = useState('');
   const [toastMsg, setToastMsg] = useState('');
@@ -1093,6 +1094,7 @@ function SettingsPage() {
         setStoreName(data.store_name);
         setOwnerName(data.owner_name);
         setStampGoal(data.stamp_goal);
+        setNearCompletionThreshold(data.near_completion_threshold);
         setRewardDesc(data.reward_desc);
         setSignature(data.message_signature);
         setLoading(false);
@@ -1112,6 +1114,7 @@ function SettingsPage() {
         store_name: storeName,
         owner_name: ownerName,
         stamp_goal: stampGoal,
+        near_completion_threshold: nearCompletionThreshold,
         reward_desc: rewardDesc,
         message_signature: signature,
       })
@@ -1183,6 +1186,20 @@ function SettingsPage() {
               <option key={val} value={val}>{val}개 적립 시 완성</option>
             ))}
           </select>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold text-stone-500 uppercase">완주 임박 알림 기준 (%)</label>
+          <input
+            type="number"
+            min="1"
+            max="100"
+            required
+            value={nearCompletionThreshold}
+            onChange={e => setNearCompletionThreshold(parseInt(e.target.value || '80'))}
+            className="w-full text-sm px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+          />
+          <p className="text-[11px] text-stone-400">스탬프를 이 비율(%) 이상 채운 고객을 "완주 임박"으로 분류합니다.</p>
         </div>
 
         <div className="space-y-1.5">
