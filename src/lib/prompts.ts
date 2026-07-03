@@ -1,18 +1,48 @@
 export function buildMessagePrompt(
-  customerName: string,
+  customerName: string | null,
   churnStage: string,
   rewardDesc: string,
   storeName: string,
-  signature: string
+  signature: string,
+  totalVisits: number,
+  daysSinceLastVisit: number | null,
+  currentStamps: number,
+  stampGoal: number,
 ): string {
-  return `당신은 카페/베이커리 매장인 "${storeName}"의 친절한 사장님입니다.
-고객 "${customerName}"님은 현재 이탈 단계가 "${churnStage}" 상태입니다.
-매장의 리워드 혜택: "${rewardDesc}"
-서명: "${signature}"
+  const nameLine = customerName !== null
+    ? `\n- 이름: ${customerName}`
+    : '';
+  const lastVisitLine = daysSinceLastVisit !== null
+    ? `\n- 마지막 방문: ${daysSinceLastVisit}일 전`
+    : '';
 
-위 정보를 바탕으로 고객의 재방문을 유도하기 위한 개인화된 마케팅 메시지 초안을 작성해주세요.
-자연스럽고 친근한 한국어로 작성하며, 너무 스팸처럼 느껴지지 않고 진심어린 혜택 안내를 포함해야 합니다.
-메시지 본문 내용만 텍스트로 반환해주세요.`;
+  return `당신은 카페/베이커리 매장 "${storeName}"을 운영하는 사장님입니다.
+아래 고객 정보를 참고해 이 고객에게 보낼 재방문 유도 메시지 본문을 작성해주세요.
+
+[고객 정보]${nameLine}
+- 이탈 단계: ${churnStage} (watch: 관심 필요, danger: 이탈 위험, churned: 장기 미방문)
+- 총 방문 횟수: ${totalVisits}회${lastVisitLine}
+- 현재 스탬프: ${currentStamps}/${stampGoal}개
+- 매장 리워드: ${rewardDesc}
+
+[메시지 구조 — 반드시 이 순서로 작성]
+1. 인사: "고객님, 안녕하세요." (이름이 있으면 "{이름} 고객님, 안녕하세요.") 다음 줄에 "${storeName}입니다."로 자기소개
+2. 기억/상황 언급: 이전 방문에 대한 감사를 담백하게 전한다. "서운하다", "그립다", "걱정된다" 같은 감정 호소 표현은 쓰지 않는다. 이탈 단계에 따라 톤만 다르게 — safe: 밝고 캐주얼하게, watch: 담백하게 혜택 중심으로, danger: 가벼운 톤으로 돌아올 명분과 혜택을 명확히, churned: 부담 없이 편하게 오시라는 담백한 톤
+3. 방문 이유: 왜 지금 연락하는지(혜택/신메뉴/시즌 등)
+4. 혜택/한정성: 구체적 혜택과 기간
+5. 행동 유도: 매장에서 이 문자를 보여주면 적용된다는 식의 명확한 행동 지침
+
+[작성 규칙 — 반드시 지킬 것]
+1. 한국어 존댓말, 사장님이 직접 쓴 듯한 자연스러운 톤
+2. 전체 분량은 1,000자를 넘지 않는다
+3. 특정 메뉴명이나 결제 금액을 직접 언급하지 않는다
+4. 과도한 친밀감이나 "감시받는 느낌"을 주는 표현(방문 횟수를 지적하는 뉘앙스 등)은 피한다
+5. 고객 이름 정보가 없으면 "OOO님" 대신 그냥 "고객님"으로 부른다
+6. 매장명은 항상 정확히 "${storeName}"로만 지칭하고 다른 이름으로 바꾸어 부르지 않는다
+7. 광고 문구, 수신거부 안내, 매장명 태그는 절대 넣지 않는다(시스템이 별도로 붙입니다) — 메시지 본문만 작성
+8. 마지막은 사장님 서명으로 마무리: "${signature}"
+
+메시지 본문만 반환하세요 (따옴표나 설명 없이).`;
 }
 
 export function buildPostPrompt(

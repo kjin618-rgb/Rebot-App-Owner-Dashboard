@@ -9,10 +9,19 @@ import {
   addMessageDraft,
   patchMessage,
   deleteMessage,
+  getMessageCustomerId,
+  updateCustomerNotes,
   getSavedContentDrafts,
   saveContentDraft,
 } from './db-server';
 import { generateAIMessage, generateAIPost } from './ai-server';
+import { calcStampCompletionRate, calcSecondVisitRate30d } from './metrics';
+
+function calcDaysSince(dateStr: string | null): number | null {
+  if (!dateStr) return null;
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
 
 function getRequestBody(req: any): Promise<any> {
   return new Promise((resolve) => {
@@ -131,14 +140,33 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
       return true;
     }
 
+    // 5-1. PATCH /api/customers/:id
+    match = pathname.match(/^\/api\/customers\/([^/]+)$/);
+    if (match && method === 'PATCH') {
+      const body = await getRequestBody(req);
+      const { store_code, notes } = body;
+      if (!store_code) { sendJson(400, { error: 'store_code is required' }); return true; }
+      if (typeof notes !== 'string' || notes.length > 500) {
+        sendJson(400, { error: 'notes must be a string of 500 characters or fewer' });
+        return true;
+      }
+      try {
+        const updated = await updateCustomerNotes(store_code, match[1], notes);
+        sendJson(200, updated);
+      } catch (err: any) {
+        sendJson(404, { error: err.message });
+      }
+      return true;
+    }
+
     // 6. POST /api/visit/:store_code
     match = pathname.match(/^\/api\/visit\/([^/]+)$/);
     if (match && method === 'POST') {
       const body = await getRequestBody(req);
-      const { customer_id, stamps } = body;
+      const { customer_id, stamps, menu, visited_at } = body;
       if (!customer_id) { sendJson(400, { error: 'customer_id is required' }); return true; }
       try {
-        const customer = await recordManualVisit(match[1], customer_id, parseInt(stamps || '1'));
+        const customer = await recordManualVisit(match[1], customer_id, parseInt(stamps || '1'), menu, visited_at);
         sendJson(200, customer);
       } catch (err: any) {
         sendJson(404, { error: err.message });
@@ -162,11 +190,15 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
       if (!detail) { sendJson(404, { error: 'Customer not found' }); return true; }
 
       const content = await generateAIMessage(
-        detail.customer.name || '고객',
+        detail.customer.name,
         detail.customer.churn_stage,
         store.reward_desc,
         store.store_name,
         store.message_signature,
+        detail.customer.total_visits,
+        calcDaysSince(detail.customer.last_visit_at),
+        detail.customer.current_stamps,
+        store.stamp_goal,
       );
       const newMsg = await addMessageDraft(store_code, customer_id, content);
       sendJson(200, newMsg);
@@ -202,6 +234,44 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
       const storeCode = query.get('store_code') || 'demo';
       await deleteMessage(storeCode, match[1]);
       sendJson(200, { success: true });
+      return true;
+    }
+
+    // 10-1. POST /api/messages/:id/regenerate
+    match = pathname.match(/^\/api\/messages\/([^/]+)\/regenerate$/);
+    if (match && method === 'POST') {
+      const body = await getRequestBody(req);
+      const { store_code } = body;
+      if (!store_code) { sendJson(400, { error: 'store_code is required' }); return true; }
+      const messageId = match[1];
+
+      try {
+        const customerId = await getMessageCustomerId(store_code, messageId);
+        if (!customerId) { sendJson(404, { error: 'Message not found' }); return true; }
+
+        const [detail, store] = await Promise.all([
+          getCustomerById(store_code, customerId),
+          getStore(store_code),
+        ]);
+        if (!detail) { sendJson(404, { error: 'Customer not found' }); return true; }
+
+        const content = await generateAIMessage(
+          detail.customer.name,
+          detail.customer.churn_stage,
+          store.reward_desc,
+          store.store_name,
+          store.message_signature,
+          detail.customer.total_visits,
+          calcDaysSince(detail.customer.last_visit_at),
+          detail.customer.current_stamps,
+          store.stamp_goal,
+        );
+
+        const updated = await patchMessage(store_code, messageId, { content });
+        sendJson(200, updated);
+      } catch (err: any) {
+        sendJson(404, { error: err.message });
+      }
       return true;
     }
 
@@ -260,9 +330,13 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
     // 16. GET /api/metrics/:store_code
     match = pathname.match(/^\/api\/metrics\/([^/]+)$/);
     if (match && method === 'GET') {
+      const [stampCompletionRate, secondVisitRate30d] = await Promise.all([
+        calcStampCompletionRate(match[1]),
+        calcSecondVisitRate30d(match[1]),
+      ]);
       sendJson(200, {
-        stamp_completion_rate: 68.5,
-        second_visit_rate_30d: 45.2,
+        stamp_completion_rate: stampCompletionRate,
+        second_visit_rate_30d: secondVisitRate30d,
         message_revisit_rate: 28.4,
         no_message_revisit_rate: 12.1,
         incremental_revisit_rate: 16.3,

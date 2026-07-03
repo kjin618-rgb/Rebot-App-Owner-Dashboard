@@ -11,6 +11,7 @@ function toStore(row: any): Store {
     store_name: row.store_name,
     owner_name: row.owner_name,
     stamp_goal: row.stamp_goal ?? 10,
+    near_completion_threshold: row.near_completion_threshold ?? 80,
     reward_desc: row.reward_desc ?? '',
     brand_color: '#d97706',
     logo_url: null,
@@ -28,9 +29,11 @@ function toCustomer(row: any): Customer {
     churn_stage: lastVisit ? calcChurn([lastVisit]) : 'churned',
     last_visit_at: lastVisit,
     total_visits: row.total_visits ?? 0,
-    total_stamps: row.current_stamps ?? 0,
+    current_stamps: row.current_stamps ?? 0,
+    total_stamps: row.total_stamps ?? 0,
     marketing_consent: row.marketing_consent ?? false,
     marketing_consent_at: row.marketing_consent_at ?? null,
+    notes: row.notes ?? null,
     created_at: row.created_at,
   };
 }
@@ -41,6 +44,7 @@ function toVisitLog(row: any): VisitLog {
     customer_id: row.customer_id,
     occurred_at: row.visited_at ?? row.created_at,
     stamps_earned: row.stamps_earned ?? 1,
+    menu: row.menu ?? null,
   };
 }
 
@@ -61,7 +65,7 @@ function toMessage(row: any): Message {
 }
 
 // store_code → 내부 stores row (UUID id 포함)
-async function getStoreRow(storeCode: string) {
+export async function getStoreRow(storeCode: string) {
   const { data } = await getSupabase()
     .from('stores')
     .select('*')
@@ -98,6 +102,7 @@ export async function updateStore(storeCode: string, settings: Partial<Store>): 
   if (settings.store_name !== undefined) updates.store_name = settings.store_name;
   if (settings.owner_name !== undefined) updates.owner_name = settings.owner_name;
   if (settings.stamp_goal !== undefined) updates.stamp_goal = settings.stamp_goal;
+  if (settings.near_completion_threshold !== undefined) updates.near_completion_threshold = settings.near_completion_threshold;
   if (settings.reward_desc !== undefined) updates.reward_desc = settings.reward_desc;
   if (settings.message_signature !== undefined) updates.message_signature = settings.message_signature;
 
@@ -124,7 +129,16 @@ export async function getCustomers(storeCode: string, filter: string = 'all'): P
     .order('created_at', { ascending: false });
 
   const customers = (data || []).map(toCustomer);
+
   if (filter === 'all') return customers;
+
+  if (filter === 'near_completion') {
+    return customers.filter(c => {
+      const completionRatio = (c.current_stamps / storeRow.stamp_goal) * 100;
+      return completionRatio >= storeRow.near_completion_threshold;
+    });
+  }
+
   return customers.filter(c => c.churn_stage === filter);
 }
 
@@ -199,7 +213,7 @@ export async function addStamp(storeCode: string, phone: string, count: number =
         phone_masked: maskPhone(cleanPhone),
         marketing_consent: true,
         marketing_consent_at: nowStr,
-        current_stamps: count,
+        current_stamps: count % storeRow.stamp_goal,
         total_stamps: count,
         total_visits: 1,
         last_visit_at: nowStr,
@@ -208,11 +222,12 @@ export async function addStamp(storeCode: string, phone: string, count: number =
       .single();
     customerRow = data;
   } else {
+    const newTotalStamps = existing.total_stamps + count;
     const { data } = await getSupabase()
       .from('customers')
       .update({
-        current_stamps: existing.current_stamps + count,
-        total_stamps: existing.total_stamps + count,
+        current_stamps: newTotalStamps % storeRow.stamp_goal,
+        total_stamps: newTotalStamps,
         total_visits: existing.total_visits + 1,
         last_visit_at: nowStr,
       })
@@ -233,7 +248,13 @@ export async function addStamp(storeCode: string, phone: string, count: number =
   return { customer: toCustomer(customerRow), earned: count };
 }
 
-export async function recordManualVisit(storeCode: string, customerId: string, stamps: number = 1): Promise<Customer> {
+export async function recordManualVisit(
+  storeCode: string,
+  customerId: string,
+  stamps: number = 1,
+  menu?: string,
+  visitedAt?: string,
+): Promise<Customer> {
   const storeRow = await getStoreRow(storeCode);
   if (!storeRow) throw new Error('Store not found');
 
@@ -246,27 +267,38 @@ export async function recordManualVisit(storeCode: string, customerId: string, s
 
   if (!existing) throw new Error('Customer not found');
 
-  const nowStr = new Date().toISOString();
-
-  const { data } = await getSupabase()
-    .from('customers')
-    .update({
-      current_stamps: existing.current_stamps + stamps,
-      total_stamps: existing.total_stamps + stamps,
-      total_visits: existing.total_visits + 1,
-      last_visit_at: nowStr,
-    })
-    .eq('id', customerId)
-    .select()
-    .single();
+  const visitedAtStr = visitedAt ?? new Date().toISOString();
 
   await getSupabase().from('visit_logs').insert({
     customer_id: customerId,
     store_id: storeRow.id,
-    visited_at: nowStr,
+    visited_at: visitedAtStr,
     stamps_earned: stamps,
     source: 'manual',
+    menu: menu ?? null,
   });
+
+  const { data: latestLog } = await getSupabase()
+    .from('visit_logs')
+    .select('visited_at')
+    .eq('customer_id', customerId)
+    .order('visited_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  const newTotalStamps = existing.total_stamps + stamps;
+
+  const { data } = await getSupabase()
+    .from('customers')
+    .update({
+      current_stamps: newTotalStamps % storeRow.stamp_goal,
+      total_stamps: newTotalStamps,
+      total_visits: existing.total_visits + 1,
+      last_visit_at: latestLog?.visited_at ?? visitedAtStr,
+    })
+    .eq('id', customerId)
+    .select()
+    .single();
 
   return toCustomer(data);
 }
@@ -350,6 +382,26 @@ export async function patchMessage(storeCode: string, id: string, updates: Parti
   return toMessage(data);
 }
 
+export async function updateCustomerNotes(storeCode: string, customerId: string, notes: string): Promise<Customer> {
+  if (notes.length > 500) {
+    throw new Error('메모는 500자를 초과할 수 없습니다.');
+  }
+
+  const storeRow = await getStoreRow(storeCode);
+  if (!storeRow) throw new Error('Store not found');
+
+  const { data } = await getSupabase()
+    .from('customers')
+    .update({ notes })
+    .eq('id', customerId)
+    .eq('store_id', storeRow.id)
+    .select()
+    .single();
+
+  if (!data) throw new Error('Customer not found');
+  return toCustomer(data);
+}
+
 export async function deleteMessage(storeCode: string, id: string): Promise<void> {
   const storeRow = await getStoreRow(storeCode);
   if (!storeRow) return;
@@ -359,6 +411,20 @@ export async function deleteMessage(storeCode: string, id: string): Promise<void
     .delete()
     .eq('id', id)
     .eq('store_id', storeRow.id);
+}
+
+export async function getMessageCustomerId(storeCode: string, id: string): Promise<string | null> {
+  const storeRow = await getStoreRow(storeCode);
+  if (!storeRow) return null;
+
+  const { data } = await getSupabase()
+    .from('messages')
+    .select('customer_id')
+    .eq('id', id)
+    .eq('store_id', storeRow.id)
+    .single();
+
+  return data?.customer_id ?? null;
 }
 
 // ─── Content Drafts ───────────────────────────────────────────────────────────

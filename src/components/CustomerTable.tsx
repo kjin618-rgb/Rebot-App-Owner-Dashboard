@@ -1,7 +1,7 @@
 import React from 'react';
 import { CustomerRow } from '../types';
 import { CHURN_LABEL, CHURN_COLOR } from '../lib/churn';
-import { User, Calendar, Check, X } from 'lucide-react';
+import { User, Calendar, Check, X, StickyNote } from 'lucide-react';
 
 interface CustomerTableProps {
   storeCode: string;
@@ -46,6 +46,9 @@ export default function CustomerTable({ storeCode, customers, onSelectCustomer }
                       {customer.name ? customer.name[0] : '고'}
                     </div>
                     <span className="group-hover:text-brand-800 transition-colors">{customer.name || '미등록 고객'}</span>
+                    {customer.notes && (
+                      <StickyNote className="w-3.5 h-3.5 text-amber-500 shrink-0" aria-label="메모 있음" />
+                    )}
                   </div>
                 </td>
                 <td className="py-4 px-6 font-mono text-stone-500 tracking-wide">{customer.phone_masked}</td>

@@ -183,7 +183,7 @@ function CustomersPage() {
   const { store_code = 'demo' } = useParams();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<CustomerRow[]>([]);
-  const [activeTab, setActiveTab] = useState<'all' | 'watch' | 'danger' | 'churned'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'watch' | 'danger' | 'churned' | 'near_completion'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -330,6 +330,7 @@ function CustomersPage() {
             { id: 'watch', label: '주의군 ⚠️' },
             { id: 'danger', label: '위험군 🚨' },
             { id: 'churned', label: '이탈 고객 📉' },
+            { id: 'near_completion', label: '완주 임박 🎁' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -387,8 +388,14 @@ function CustomerDetailPage() {
   // Stamp input state
   const [stampCount, setStampCount] = useState(1);
   const [stampLoading, setStampLoading] = useState(false);
+  const [menuInput, setMenuInput] = useState('');
+  const [visitDate, setVisitDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [isGeneratingMessage, setIsGeneratingMessage] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Notes state
+  const [noteText, setNoteText] = useState('');
+  const [noteSaving, setNoteSaving] = useState(false);
 
   const loadDetail = () => {
     setLoading(true);
@@ -411,25 +418,58 @@ function CustomerDetailPage() {
     loadDetail();
   }, [store_code, id]);
 
+  useEffect(() => {
+    if (detail?.customer) {
+      setNoteText(detail.customer.notes || '');
+    }
+  }, [detail]);
+
   const handleManualStamp = (e: React.FormEvent) => {
     e.preventDefault();
     setStampLoading(true);
     fetch(`/api/visit/${store_code}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ customer_id: id, stamps: stampCount })
+      body: JSON.stringify({
+        customer_id: id,
+        stamps: stampCount,
+        menu: menuInput || undefined,
+        visited_at: new Date(`${visitDate}T12:00:00`).toISOString(),
+      })
     })
       .then(res => res.json())
       .then(() => {
         setSuccessMsg(`성공적으로 스탬프 ${stampCount}개가 추가 적립되었습니다.`);
         setStampLoading(false);
         setStampCount(1);
+        setMenuInput('');
+        setVisitDate(new Date().toISOString().slice(0, 10));
         loadDetail();
         setTimeout(() => setSuccessMsg(''), 3000);
       })
       .catch(err => {
         console.error(err);
         setStampLoading(false);
+      });
+  };
+
+  const handleSaveNotes = () => {
+    setNoteSaving(true);
+    fetch(`/api/customers/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ store_code, notes: noteText })
+    })
+      .then(res => res.json())
+      .then(() => {
+        setNoteSaving(false);
+        setSuccessMsg('메모가 저장되었습니다.');
+        loadDetail();
+        setTimeout(() => setSuccessMsg(''), 3000);
+      })
+      .catch(err => {
+        console.error(err);
+        setNoteSaving(false);
       });
   };
 
@@ -598,6 +638,27 @@ function CustomerDetailPage() {
                   className="w-full text-sm px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold text-stone-400">메뉴 (선택)</label>
+                <input
+                  type="text"
+                  value={menuInput}
+                  onChange={e => setMenuInput(e.target.value)}
+                  placeholder="예: 아메리카노, 소금빵"
+                  className="w-full text-sm px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold text-stone-400">방문 날짜</label>
+                <input
+                  type="date"
+                  required
+                  value={visitDate}
+                  onChange={e => setVisitDate(e.target.value)}
+                  max={new Date().toISOString().slice(0, 10)}
+                  className="w-full text-sm px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
               <button
                 type="submit"
                 disabled={stampLoading}
@@ -606,6 +667,31 @@ function CustomerDetailPage() {
                 {stampLoading ? '적립하는 중...' : '적립 완료'}
               </button>
             </form>
+          </div>
+
+          {/* Customer notes */}
+          <div className="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm space-y-3">
+            <h3 className="font-bold text-stone-900 text-sm border-b border-stone-100 pb-2.5">메모</h3>
+            <textarea
+              rows={4}
+              maxLength={500}
+              value={noteText}
+              onChange={e => setNoteText(e.target.value)}
+              placeholder="고객에 대한 메모를 남겨보세요 (예: 선호 메뉴, 특이사항 등)"
+              className="w-full text-sm p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 leading-relaxed whitespace-pre-wrap"
+            />
+            <div className="flex items-center justify-between">
+              <span className={`text-xs font-medium ${noteText.length > 500 ? 'text-red-600' : 'text-stone-400'}`}>
+                {noteText.length} / 500자
+              </span>
+              <button
+                onClick={handleSaveNotes}
+                disabled={noteSaving || noteText.length > 500}
+                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 disabled:bg-stone-300 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
+              >
+                {noteSaving ? '저장하는 중...' : '메모 저장'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -629,7 +715,9 @@ function CustomerDetailPage() {
                 <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
                   {detail.visit_logs.map((log: any) => (
                     <div key={log.id} className="p-3 bg-stone-50 hover:bg-stone-100/50 border border-stone-100 rounded-xl flex justify-between items-center text-xs">
-                      <span className="text-stone-600 font-medium">스탬프 적립 방문</span>
+                      <span className="text-stone-600 font-medium">
+                        스탬프 적립 방문{log.menu ? ` · ${log.menu}` : ''}
+                      </span>
                       <div className="flex items-center gap-3">
                         <span className="font-semibold text-amber-600 font-mono">+{log.stamps_earned} 스탬프</span>
                         <span className="text-stone-400 font-mono">{new Date(log.occurred_at).toLocaleString('ko-KR')}</span>
@@ -789,6 +877,21 @@ function MessagesPage() {
       .catch(err => console.error(err));
   };
 
+  const handleRegenerate = (id: string) => {
+    fetch(`/api/messages/${id}/regenerate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ store_code })
+    })
+      .then(res => res.json())
+      .then(() => {
+        setToastMsg('AI 메시지가 새로 재생성되었습니다.');
+        fetchMessagesFromApi();
+        setTimeout(() => setToastMsg(''), 3000);
+      })
+      .catch(err => console.error(err));
+  };
+
   const handleEditClick = (msg: Message) => {
     setEditingMsg(msg);
     setEditContent(msg.content);
@@ -841,6 +944,15 @@ function MessagesPage() {
                 onChange={e => setEditContent(e.target.value)}
                 className="w-full text-sm p-4 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 leading-relaxed whitespace-pre-wrap"
               />
+              <div className={`text-right text-xs font-medium ${editContent.length >= 900 ? 'text-amber-600' : 'text-stone-400'}`}>
+                {editContent.length.toLocaleString()} / 1,000자
+              </div>
+              {editContent.length >= 900 && (
+                <div className="flex items-start gap-2 bg-amber-50 rounded-lg p-3 text-xs text-amber-800 border border-amber-100/60">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+                  <span>메시지는 1,000자 이하로 작성해 주세요. 핵심 내용만 간결하게 정리하면 고객이 더 쉽게 읽을 수 있어요.</span>
+                </div>
+              )}
               <div className="flex justify-end gap-2.5">
                 <button
                   type="submit"
@@ -867,11 +979,12 @@ function MessagesPage() {
           <p className="text-xs text-stone-400">초안을 불러오고 있습니다...</p>
         </div>
       ) : (
-        <MessageList 
-          messages={messages} 
-          onSend={handleSend} 
-          onDelete={handleDelete} 
-          onEdit={handleEditClick} 
+        <MessageList
+          messages={messages}
+          onSend={handleSend}
+          onDelete={handleDelete}
+          onEdit={handleEditClick}
+          onRegenerate={handleRegenerate}
         />
       )}
     </div>
@@ -968,6 +1081,7 @@ function SettingsPage() {
   const [storeName, setStoreName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [stampGoal, setStampGoal] = useState(10);
+  const [nearCompletionThreshold, setNearCompletionThreshold] = useState(80);
   const [rewardDesc, setRewardDesc] = useState('');
   const [signature, setSignature] = useState('');
   const [toastMsg, setToastMsg] = useState('');
@@ -981,6 +1095,7 @@ function SettingsPage() {
         setStoreName(data.store_name);
         setOwnerName(data.owner_name);
         setStampGoal(data.stamp_goal);
+        setNearCompletionThreshold(data.near_completion_threshold);
         setRewardDesc(data.reward_desc);
         setSignature(data.message_signature);
         setLoading(false);
@@ -1000,6 +1115,7 @@ function SettingsPage() {
         store_name: storeName,
         owner_name: ownerName,
         stamp_goal: stampGoal,
+        near_completion_threshold: nearCompletionThreshold,
         reward_desc: rewardDesc,
         message_signature: signature,
       })
@@ -1071,6 +1187,20 @@ function SettingsPage() {
               <option key={val} value={val}>{val}개 적립 시 완성</option>
             ))}
           </select>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold text-stone-500 uppercase">완주 임박 알림 기준 (%)</label>
+          <input
+            type="number"
+            min="1"
+            max="100"
+            required
+            value={nearCompletionThreshold}
+            onChange={e => setNearCompletionThreshold(parseInt(e.target.value || '80'))}
+            className="w-full text-sm px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+          />
+          <p className="text-[11px] text-stone-400">스탬프를 이 비율(%) 이상 채운 고객을 "완주 임박"으로 분류합니다.</p>
         </div>
 
         <div className="space-y-1.5">
