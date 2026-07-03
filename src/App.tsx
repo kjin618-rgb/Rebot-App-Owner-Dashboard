@@ -183,7 +183,7 @@ function CustomersPage() {
   const { store_code = 'demo' } = useParams();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<CustomerRow[]>([]);
-  const [activeTab, setActiveTab] = useState<'all' | 'watch' | 'danger' | 'churned'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'watch' | 'danger' | 'churned' | 'near_completion'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -330,6 +330,7 @@ function CustomersPage() {
             { id: 'watch', label: '주의군 ⚠️' },
             { id: 'danger', label: '위험군 🚨' },
             { id: 'churned', label: '이탈 고객 📉' },
+            { id: 'near_completion', label: '완주 임박 🎁' },
           ].map(tab => (
             <button
               key={tab.id}
