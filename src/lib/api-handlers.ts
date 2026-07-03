@@ -15,6 +15,7 @@ import {
   saveContentDraft,
 } from './db-server';
 import { generateAIMessage, generateAIPost } from './ai-server';
+import { calcStampCompletionRate, calcSecondVisitRate30d } from './metrics';
 
 function calcDaysSince(dateStr: string | null): number | null {
   if (!dateStr) return null;
@@ -329,9 +330,13 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
     // 16. GET /api/metrics/:store_code
     match = pathname.match(/^\/api\/metrics\/([^/]+)$/);
     if (match && method === 'GET') {
+      const [stampCompletionRate, secondVisitRate30d] = await Promise.all([
+        calcStampCompletionRate(match[1]),
+        calcSecondVisitRate30d(match[1]),
+      ]);
       sendJson(200, {
-        stamp_completion_rate: 68.5,
-        second_visit_rate_30d: 45.2,
+        stamp_completion_rate: stampCompletionRate,
+        second_visit_rate_30d: secondVisitRate30d,
         message_revisit_rate: 28.4,
         no_message_revisit_rate: 12.1,
         incremental_revisit_rate: 16.3,
