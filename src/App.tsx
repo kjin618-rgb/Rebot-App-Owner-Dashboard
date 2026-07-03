@@ -390,6 +390,10 @@ function CustomerDetailPage() {
   const [isGeneratingMessage, setIsGeneratingMessage] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Notes state
+  const [noteText, setNoteText] = useState('');
+  const [noteSaving, setNoteSaving] = useState(false);
+
   const loadDetail = () => {
     setLoading(true);
     fetch(`/api/customers/${store_code}/${id}`)
@@ -411,6 +415,12 @@ function CustomerDetailPage() {
     loadDetail();
   }, [store_code, id]);
 
+  useEffect(() => {
+    if (detail?.customer) {
+      setNoteText(detail.customer.notes || '');
+    }
+  }, [detail]);
+
   const handleManualStamp = (e: React.FormEvent) => {
     e.preventDefault();
     setStampLoading(true);
@@ -430,6 +440,26 @@ function CustomerDetailPage() {
       .catch(err => {
         console.error(err);
         setStampLoading(false);
+      });
+  };
+
+  const handleSaveNotes = () => {
+    setNoteSaving(true);
+    fetch(`/api/customers/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ store_code, notes: noteText })
+    })
+      .then(res => res.json())
+      .then(() => {
+        setNoteSaving(false);
+        setSuccessMsg('메모가 저장되었습니다.');
+        loadDetail();
+        setTimeout(() => setSuccessMsg(''), 3000);
+      })
+      .catch(err => {
+        console.error(err);
+        setNoteSaving(false);
       });
   };
 
@@ -606,6 +636,31 @@ function CustomerDetailPage() {
                 {stampLoading ? '적립하는 중...' : '적립 완료'}
               </button>
             </form>
+          </div>
+
+          {/* Customer notes */}
+          <div className="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm space-y-3">
+            <h3 className="font-bold text-stone-900 text-sm border-b border-stone-100 pb-2.5">메모</h3>
+            <textarea
+              rows={4}
+              maxLength={500}
+              value={noteText}
+              onChange={e => setNoteText(e.target.value)}
+              placeholder="고객에 대한 메모를 남겨보세요 (예: 선호 메뉴, 특이사항 등)"
+              className="w-full text-sm p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 leading-relaxed whitespace-pre-wrap"
+            />
+            <div className="flex items-center justify-between">
+              <span className={`text-xs font-medium ${noteText.length > 500 ? 'text-red-600' : 'text-stone-400'}`}>
+                {noteText.length} / 500자
+              </span>
+              <button
+                onClick={handleSaveNotes}
+                disabled={noteSaving || noteText.length > 500}
+                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 disabled:bg-stone-300 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
+              >
+                {noteSaving ? '저장하는 중...' : '메모 저장'}
+              </button>
+            </div>
           </div>
         </div>
 
