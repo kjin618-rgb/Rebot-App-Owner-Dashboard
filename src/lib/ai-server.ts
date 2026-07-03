@@ -20,12 +20,14 @@ async function getGeminiClient(): Promise<any | null> {
 }
 
 // Fallback high-quality template generators when APIs are not configured
-function getFallbackMessage(customerName: string, churnStage: string, rewardDesc: string, storeName: string, signature: string): string {
+function getFallbackMessage(customerName: string | null, churnStage: string, rewardDesc: string, storeName: string, signature: string): string {
+  const greeting = customerName ? `${customerName} 고객님` : '고객님';
+
   if (churnStage === 'danger') {
-    return `[${storeName}] ${customerName} 고객님, 안녕하세요.
+    return `${greeting}, 안녕하세요.
 한동안 매장에 발걸음이 뜸하셔서 많이 서운하고 안부가 궁금한 마음에 메시지 드립니다. 😢
 
-저희를 잊지 않고 찾아주시는 마음에 보답하고자 특별한 선물을 준비했어요. 
+저희를 잊지 않고 찾아주시는 마음에 보답하고자 특별한 선물을 준비했어요.
 이번 주 중 매장에 방문해주시면 따뜻한 위로가 될 수 있는 [시그니처 아메리카노 또는 소금빵 1개 무료 제공] 혜택을 드립니다!
 
 * 매장 혜택 리워드: ${rewardDesc}
@@ -34,19 +36,19 @@ function getFallbackMessage(customerName: string, churnStage: string, rewardDesc
 
 ${signature}`;
   } else if (churnStage === 'watch') {
-    return `[${storeName}] ${customerName} 고객님, 늘 감사드립니다.
-최근 날씨가 참 좋은데, 건강히 잘 지내고 계시나요? 
+    return `${greeting}, 늘 감사드립니다.
+최근 날씨가 참 좋은데, 건강히 잘 지내고 계시나요?
 
-요즘 매장에 맛있는 신메뉴들이 가득 채워져 있는데, 오랜만에 고객님 생각이 나서 소식 전합니다. 
+요즘 매장에 맛있는 신메뉴들이 가득 채워져 있는데, 오랜만에 고객님 생각이 나서 소식 전합니다.
 이번 주 내에 매장에 들러주시면 스탬프를 2배로 적립해 드리는 특별 이벤트를 제공해 드리려고 해요! ⭐️
 
 * 매장 혜택 리워드: ${rewardDesc}
 
-따뜻한 온기가 남아있을 때 드시면 가장 맛있는 저희 빵들 가득 준비해둘 테니, 편하게 찾아주세요. 
+따뜻한 온기가 남아있을 때 드시면 가장 맛있는 저희 빵들 가득 준비해둘 테니, 편하게 찾아주세요.
 
 ${signature}`;
   } else {
-    return `[${storeName}] ${customerName} 고객님, 오랜만에 인사 올립니다.
+    return `${greeting}, 오랜만에 인사 올립니다.
 그동안 리봇 베이커리를 기억하고 사랑해 주셔서 진심으로 감사드립니다.
 
 마지막으로 방문해 주신 지 시간이 제법 흘러, 혹시 매장에 불편한 점이 있으셨던 건 아닐까 걱정 반, 그리움 반으로 소식을 전합니다.
@@ -60,6 +62,12 @@ ${signature}`;
   }
 }
 
+// 법정 표기(광고 태그, 무료수신거부)는 AI/폴백 생성 결과에 맡기지 않고 항상 코드에서 고정으로 부착한다.
+// 무료수신거부 번호는 현재 매장별 설정값이 없어 하드코딩된 플레이스홀더를 사용한다.
+function wrapWithComplianceNotice(storeName: string, body: string): string {
+  return `(광고) ${storeName}\n${body}\n\n무료수신거부: 080-000-0000`;
+}
+
 function getFallbackPost(purpose: string, details: string, benefit: string, duration: string, tone: string, emphasis: string, storeName: string) {
   return {
     instagram_post: `🍞 ${storeName}에서 전하는 특별한 소식! 🥐✨\n\n여러분을 위한 엄청난 행복 정보가 찾아왔습니다! 🧡\n\n👉 이번 홍보 테마: [${purpose}]\n\n${details || '매장에서 정성스레 준비한 스페셜 빵과 향긋한 에스프레소!'}\n\n🎁 이번 캠페인의 초특급 혜택:\n🔥 ${benefit || '선택 품목 10% 추가 할인 또는 적립금 2배!'}\n\n⏰ 기간: ${duration}\n📢 강조: ${emphasis || '당일 반죽 및 당일 소진 원칙 고수!'}\n\n따뜻한 분위기 가득한 저희 매장에 오셔서 기분 좋은 여유를 느껴보세요. 언제나 행복한 하루 되세요! ☕️`,
@@ -70,7 +78,7 @@ function getFallbackPost(purpose: string, details: string, benefit: string, dura
 }
 
 export async function generateAIMessage(
-  customerName: string,
+  customerName: string | null,
   churnStage: string,
   rewardDesc: string,
   storeName: string,
@@ -84,7 +92,9 @@ export async function generateAIMessage(
     customerName, churnStage, rewardDesc, storeName, signature,
     totalVisits, daysSinceLastVisit, currentStamps, stampGoal,
   );
-  
+
+  let body: string | null = null;
+
   // 1. Try OpenRouter if key is available
   if (process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY !== 'MY_OPENROUTER_API_KEY') {
     try {
@@ -102,7 +112,7 @@ export async function generateAIMessage(
       if (res.ok) {
         const data = await res.json() as any;
         const text = data.choices?.[0]?.message?.content;
-        if (text) return text.trim();
+        if (text) body = text.trim();
       }
     } catch (e) {
       console.error('OpenRouter generation failed, trying Gemini', e);
@@ -110,23 +120,29 @@ export async function generateAIMessage(
   }
 
   // 2. Try native Gemini client
-  const gemini = await getGeminiClient();
-  if (gemini) {
-    try {
-      const response = await gemini.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-      });
-      if (response && response.text) {
-        return response.text.trim();
+  if (!body) {
+    const gemini = await getGeminiClient();
+    if (gemini) {
+      try {
+        const response = await gemini.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+        });
+        if (response && response.text) {
+          body = response.text.trim();
+        }
+      } catch (e) {
+        console.error('Gemini generation failed, falling back to templates', e);
       }
-    } catch (e) {
-      console.error('Gemini generation failed, falling back to templates', e);
     }
   }
 
   // 3. Fallback to templates
-  return getFallbackMessage(customerName, churnStage, rewardDesc, storeName, signature);
+  if (!body) {
+    body = getFallbackMessage(customerName, churnStage, rewardDesc, storeName, signature);
+  }
+
+  return wrapWithComplianceNotice(storeName, body);
 }
 
 export async function generateAIPost(
