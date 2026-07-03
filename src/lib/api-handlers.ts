@@ -169,7 +169,7 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
       if (!detail) { sendJson(404, { error: 'Customer not found' }); return true; }
 
       const content = await generateAIMessage(
-        detail.customer.name || '고객',
+        detail.customer.name,
         detail.customer.churn_stage,
         store.reward_desc,
         store.store_name,
@@ -235,7 +235,7 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
         if (!detail) { sendJson(404, { error: 'Customer not found' }); return true; }
 
         const content = await generateAIMessage(
-          detail.customer.name || '고객',
+          detail.customer.name,
           detail.customer.churn_stage,
           store.reward_desc,
           store.store_name,
