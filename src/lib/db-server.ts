@@ -202,7 +202,7 @@ export async function addStamp(storeCode: string, phone: string, count: number =
         phone_masked: maskPhone(cleanPhone),
         marketing_consent: true,
         marketing_consent_at: nowStr,
-        current_stamps: count,
+        current_stamps: count % storeRow.stamp_goal,
         total_stamps: count,
         total_visits: 1,
         last_visit_at: nowStr,
@@ -211,11 +211,12 @@ export async function addStamp(storeCode: string, phone: string, count: number =
       .single();
     customerRow = data;
   } else {
+    const newTotalStamps = existing.total_stamps + count;
     const { data } = await getSupabase()
       .from('customers')
       .update({
-        current_stamps: existing.current_stamps + count,
-        total_stamps: existing.total_stamps + count,
+        current_stamps: newTotalStamps % storeRow.stamp_goal,
+        total_stamps: newTotalStamps,
         total_visits: existing.total_visits + 1,
         last_visit_at: nowStr,
       })
@@ -274,11 +275,13 @@ export async function recordManualVisit(
     .limit(1)
     .single();
 
+  const newTotalStamps = existing.total_stamps + stamps;
+
   const { data } = await getSupabase()
     .from('customers')
     .update({
-      current_stamps: existing.current_stamps + stamps,
-      total_stamps: existing.total_stamps + stamps,
+      current_stamps: newTotalStamps % storeRow.stamp_goal,
+      total_stamps: newTotalStamps,
       total_visits: existing.total_visits + 1,
       last_visit_at: latestLog?.visited_at ?? visitedAtStr,
     })
