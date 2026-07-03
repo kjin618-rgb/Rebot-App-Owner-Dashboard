@@ -22,6 +22,7 @@ export interface Customer {
   total_stamps: number;
   marketing_consent: boolean;
   marketing_consent_at: string | null;
+  notes: string | null;
   created_at: string;
 }
 

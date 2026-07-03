@@ -31,6 +31,7 @@ function toCustomer(row: any): Customer {
     total_stamps: row.current_stamps ?? 0,
     marketing_consent: row.marketing_consent ?? false,
     marketing_consent_at: row.marketing_consent_at ?? null,
+    notes: row.notes ?? null,
     created_at: row.created_at,
   };
 }
@@ -348,6 +349,26 @@ export async function patchMessage(storeCode: string, id: string, updates: Parti
 
   if (!data) throw new Error('Message not found');
   return toMessage(data);
+}
+
+export async function updateCustomerNotes(storeCode: string, customerId: string, notes: string): Promise<Customer> {
+  if (notes.length > 500) {
+    throw new Error('메모는 500자를 초과할 수 없습니다.');
+  }
+
+  const storeRow = await getStoreRow(storeCode);
+  if (!storeRow) throw new Error('Store not found');
+
+  const { data } = await getSupabase()
+    .from('customers')
+    .update({ notes })
+    .eq('id', customerId)
+    .eq('store_id', storeRow.id)
+    .select()
+    .single();
+
+  if (!data) throw new Error('Customer not found');
+  return toCustomer(data);
 }
 
 export async function deleteMessage(storeCode: string, id: string): Promise<void> {
