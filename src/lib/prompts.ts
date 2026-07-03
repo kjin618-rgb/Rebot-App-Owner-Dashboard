@@ -1,5 +1,5 @@
 export function buildMessagePrompt(
-  customerName: string,
+  customerName: string | null,
   churnStage: string,
   rewardDesc: string,
   storeName: string,
@@ -9,26 +9,37 @@ export function buildMessagePrompt(
   currentStamps: number,
   stampGoal: number,
 ): string {
+  const nameLine = customerName !== null
+    ? `\n- 이름: ${customerName}`
+    : '';
   const lastVisitLine = daysSinceLastVisit !== null
     ? `\n- 마지막 방문: ${daysSinceLastVisit}일 전`
     : '';
 
   return `당신은 카페/베이커리 매장 "${storeName}"을 운영하는 사장님입니다.
-아래 고객 정보를 참고해 이 고객에게 보낼 재방문 유도 메시지를 작성해주세요.
+아래 고객 정보를 참고해 이 고객에게 보낼 재방문 유도 메시지 본문을 작성해주세요.
 
-[고객 정보]
-- 이름: ${customerName}
-- 이탈 단계: ${churnStage} (safe: 최근 방문, watch: 관심 필요, danger: 이탈 위험, churned: 장기 미방문)
+[고객 정보]${nameLine}
+- 이탈 단계: ${churnStage} (watch: 관심 필요, danger: 이탈 위험, churned: 장기 미방문)
 - 총 방문 횟수: ${totalVisits}회${lastVisitLine}
 - 현재 스탬프: ${currentStamps}/${stampGoal}개
 - 매장 리워드: ${rewardDesc}
 
+[메시지 구조 — 반드시 이 순서로 작성]
+1. 인사: "안녕하세요, ${storeName}입니다." 형태로 시작
+2. 기억/상황 언급: 이전 방문에 대한 감사 또는 안부. 이탈 단계에 따라 톤만 다르게 — watch는 가볍게 안부 묻듯, danger는 서운함·그리움을 담아, churned는 오랜만의 인사처럼
+3. 방문 이유: 왜 지금 연락하는지(혜택/신메뉴/시즌 등)
+4. 혜택/한정성: 구체적 혜택과 기간
+5. 행동 유도: 매장에서 이 문자를 보여주면 적용된다는 식의 명확한 행동 지침
+
 [작성 규칙 — 반드시 지킬 것]
-1. 한국어 존댓말, 사장님이 직접 안부를 묻는 듯한 자연스러운 톤으로 작성한다.
-2. 전체 분량은 2~3문장 이내로 작성한다 (카카오 알림톡 발송을 고려).
-3. 특정 메뉴명이나 결제 금액을 직접 언급하지 않는다.
-4. 과도한 친밀감이나 "감시받는 느낌"을 주는 표현(예: 방문 횟수를 지적하는 뉘앙스)은 피한다.
-5. 마지막은 매장명 또는 아래 서명으로 마무리한다: "${signature}"
+1. 한국어 존댓말, 사장님이 직접 쓴 듯한 자연스러운 톤
+2. 전체 분량은 1,000자를 넘지 않는다
+3. 특정 메뉴명이나 결제 금액을 직접 언급하지 않는다
+4. 과도한 친밀감이나 "감시받는 느낌"을 주는 표현(방문 횟수를 지적하는 뉘앙스 등)은 피한다
+5. 고객 이름 정보가 없으면 "OOO님" 대신 그냥 "고객님"으로 부른다
+6. 광고 문구, 수신거부 안내, 매장명 태그는 절대 넣지 않는다(시스템이 별도로 붙입니다) — 메시지 본문만 작성
+7. 마지막은 사장님 서명으로 마무리: "${signature}"
 
 메시지 본문만 반환하세요 (따옴표나 설명 없이).`;
 }
