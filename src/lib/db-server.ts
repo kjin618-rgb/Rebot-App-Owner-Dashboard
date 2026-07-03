@@ -42,6 +42,7 @@ function toVisitLog(row: any): VisitLog {
     customer_id: row.customer_id,
     occurred_at: row.visited_at ?? row.created_at,
     stamps_earned: row.stamps_earned ?? 1,
+    menu: row.menu ?? null,
   };
 }
 
@@ -234,7 +235,13 @@ export async function addStamp(storeCode: string, phone: string, count: number =
   return { customer: toCustomer(customerRow), earned: count };
 }
 
-export async function recordManualVisit(storeCode: string, customerId: string, stamps: number = 1): Promise<Customer> {
+export async function recordManualVisit(
+  storeCode: string,
+  customerId: string,
+  stamps: number = 1,
+  menu?: string,
+  visitedAt?: string,
+): Promise<Customer> {
   const storeRow = await getStoreRow(storeCode);
   if (!storeRow) throw new Error('Store not found');
 
@@ -247,7 +254,24 @@ export async function recordManualVisit(storeCode: string, customerId: string, s
 
   if (!existing) throw new Error('Customer not found');
 
-  const nowStr = new Date().toISOString();
+  const visitedAtStr = visitedAt ?? new Date().toISOString();
+
+  await getSupabase().from('visit_logs').insert({
+    customer_id: customerId,
+    store_id: storeRow.id,
+    visited_at: visitedAtStr,
+    stamps_earned: stamps,
+    source: 'manual',
+    menu: menu ?? null,
+  });
+
+  const { data: latestLog } = await getSupabase()
+    .from('visit_logs')
+    .select('visited_at')
+    .eq('customer_id', customerId)
+    .order('visited_at', { ascending: false })
+    .limit(1)
+    .single();
 
   const { data } = await getSupabase()
     .from('customers')
@@ -255,19 +279,11 @@ export async function recordManualVisit(storeCode: string, customerId: string, s
       current_stamps: existing.current_stamps + stamps,
       total_stamps: existing.total_stamps + stamps,
       total_visits: existing.total_visits + 1,
-      last_visit_at: nowStr,
+      last_visit_at: latestLog?.visited_at ?? visitedAtStr,
     })
     .eq('id', customerId)
     .select()
     .single();
-
-  await getSupabase().from('visit_logs').insert({
-    customer_id: customerId,
-    store_id: storeRow.id,
-    visited_at: nowStr,
-    stamps_earned: stamps,
-    source: 'manual',
-  });
 
   return toCustomer(data);
 }

@@ -162,10 +162,10 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
     match = pathname.match(/^\/api\/visit\/([^/]+)$/);
     if (match && method === 'POST') {
       const body = await getRequestBody(req);
-      const { customer_id, stamps } = body;
+      const { customer_id, stamps, menu, visited_at } = body;
       if (!customer_id) { sendJson(400, { error: 'customer_id is required' }); return true; }
       try {
-        const customer = await recordManualVisit(match[1], customer_id, parseInt(stamps || '1'));
+        const customer = await recordManualVisit(match[1], customer_id, parseInt(stamps || '1'), menu, visited_at);
         sendJson(200, customer);
       } catch (err: any) {
         sendJson(404, { error: err.message });

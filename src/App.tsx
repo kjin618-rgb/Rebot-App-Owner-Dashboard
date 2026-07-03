@@ -387,6 +387,8 @@ function CustomerDetailPage() {
   // Stamp input state
   const [stampCount, setStampCount] = useState(1);
   const [stampLoading, setStampLoading] = useState(false);
+  const [menuInput, setMenuInput] = useState('');
+  const [visitDate, setVisitDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [isGeneratingMessage, setIsGeneratingMessage] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -427,13 +429,20 @@ function CustomerDetailPage() {
     fetch(`/api/visit/${store_code}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ customer_id: id, stamps: stampCount })
+      body: JSON.stringify({
+        customer_id: id,
+        stamps: stampCount,
+        menu: menuInput || undefined,
+        visited_at: new Date(`${visitDate}T12:00:00`).toISOString(),
+      })
     })
       .then(res => res.json())
       .then(() => {
         setSuccessMsg(`성공적으로 스탬프 ${stampCount}개가 추가 적립되었습니다.`);
         setStampLoading(false);
         setStampCount(1);
+        setMenuInput('');
+        setVisitDate(new Date().toISOString().slice(0, 10));
         loadDetail();
         setTimeout(() => setSuccessMsg(''), 3000);
       })
@@ -628,6 +637,27 @@ function CustomerDetailPage() {
                   className="w-full text-sm px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold text-stone-400">메뉴 (선택)</label>
+                <input
+                  type="text"
+                  value={menuInput}
+                  onChange={e => setMenuInput(e.target.value)}
+                  placeholder="예: 아메리카노, 소금빵"
+                  className="w-full text-sm px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold text-stone-400">방문 날짜</label>
+                <input
+                  type="date"
+                  required
+                  value={visitDate}
+                  onChange={e => setVisitDate(e.target.value)}
+                  max={new Date().toISOString().slice(0, 10)}
+                  className="w-full text-sm px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
               <button
                 type="submit"
                 disabled={stampLoading}
@@ -684,7 +714,9 @@ function CustomerDetailPage() {
                 <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
                   {detail.visit_logs.map((log: any) => (
                     <div key={log.id} className="p-3 bg-stone-50 hover:bg-stone-100/50 border border-stone-100 rounded-xl flex justify-between items-center text-xs">
-                      <span className="text-stone-600 font-medium">스탬프 적립 방문</span>
+                      <span className="text-stone-600 font-medium">
+                        스탬프 적립 방문{log.menu ? ` · ${log.menu}` : ''}
+                      </span>
                       <div className="flex items-center gap-3">
                         <span className="font-semibold text-amber-600 font-mono">+{log.stamps_earned} 스탬프</span>
                         <span className="text-stone-400 font-mono">{new Date(log.occurred_at).toLocaleString('ko-KR')}</span>
