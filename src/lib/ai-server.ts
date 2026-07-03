@@ -74,9 +74,16 @@ export async function generateAIMessage(
   churnStage: string,
   rewardDesc: string,
   storeName: string,
-  signature: string
+  signature: string,
+  totalVisits: number,
+  daysSinceLastVisit: number | null,
+  currentStamps: number,
+  stampGoal: number,
 ): Promise<string> {
-  const prompt = buildMessagePrompt(customerName, churnStage, rewardDesc, storeName, signature);
+  const prompt = buildMessagePrompt(
+    customerName, churnStage, rewardDesc, storeName, signature,
+    totalVisits, daysSinceLastVisit, currentStamps, stampGoal,
+  );
   
   // 1. Try OpenRouter if key is available
   if (process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY !== 'MY_OPENROUTER_API_KEY') {
