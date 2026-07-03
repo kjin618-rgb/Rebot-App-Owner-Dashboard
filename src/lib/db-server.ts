@@ -129,7 +129,16 @@ export async function getCustomers(storeCode: string, filter: string = 'all'): P
     .order('created_at', { ascending: false });
 
   const customers = (data || []).map(toCustomer);
+
   if (filter === 'all') return customers;
+
+  if (filter === 'near_completion') {
+    return customers.filter(c => {
+      const completionRatio = (c.current_stamps / storeRow.stamp_goal) * 100;
+      return completionRatio >= storeRow.near_completion_threshold;
+    });
+  }
+
   return customers.filter(c => c.churn_stage === filter);
 }
 
