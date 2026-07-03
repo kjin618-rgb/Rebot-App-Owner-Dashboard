@@ -31,6 +31,7 @@ function toCustomer(row: any): Customer {
     total_stamps: row.current_stamps ?? 0,
     marketing_consent: row.marketing_consent ?? false,
     marketing_consent_at: row.marketing_consent_at ?? null,
+    notes: row.notes ?? null,
     created_at: row.created_at,
   };
 }
