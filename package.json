@@ -11,7 +11,8 @@
     "start": "tsx server.ts",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "seed:churn:verify": "tsx scripts/verify-churn-seed.ts"
+    "seed:churn:verify": "tsx scripts/verify-churn-seed.ts",
+    "seed:churn": "tsx scripts/seed-churn-data.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
