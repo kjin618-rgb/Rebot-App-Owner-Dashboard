@@ -377,6 +377,7 @@ export async function patchMessage(storeCode: string, id: string, updates: Parti
   if (updates.content !== undefined) dbUpdates.content = updates.content;
   if (updates.status !== undefined) dbUpdates.status = updates.status;
   if (updates.sent_at !== undefined) dbUpdates.sent_at = updates.sent_at;
+  if (updates.message_type !== undefined) dbUpdates.message_type = updates.message_type;
 
   const { data } = await getSupabase()
     .from('messages')
