@@ -13,7 +13,6 @@ import {
   updateCustomerNotes,
   getSavedContentDrafts,
   saveContentDraft,
-  isNearCompletion,
 } from './db-server';
 import { generateAIPost, generateMessageForCustomer } from './ai-server';
 import { calcStampCompletionRate, calcSecondVisitRate30d } from './metrics';
@@ -78,10 +77,9 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
     match = pathname.match(/^\/api\/dashboard\/([^/]+)$/);
     if (match && method === 'GET') {
       const storeCode = match[1];
-      const [customers, messages, store] = await Promise.all([
+      const [customers, messages] = await Promise.all([
         getCustomers(storeCode),
         getStoreMessages(storeCode),
-        getStore(storeCode),
       ]);
 
       const churn_summary = {
@@ -90,8 +88,6 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
         danger: customers.filter(c => c.churn_stage === 'danger').length,
         churned: customers.filter(c => c.churn_stage === 'churned').length,
       };
-
-      const near_completion_count = customers.filter(c => isNearCompletion(c.current_stamps, store.stamp_goal, store.near_completion_threshold)).length;
 
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
@@ -118,7 +114,6 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
         total_customers: customers.length,
         marketing_consent_count: customers.filter(c => c.marketing_consent).length,
         churn_summary,
-        near_completion_count,
         today_stamps: customers.filter(c => c.last_visit_at && new Date(c.last_visit_at).getTime() >= todayStart.getTime()).length,
         recent_visitors_30d: customers.filter(c => c.last_visit_at && new Date(c.last_visit_at).getTime() >= thirtyDaysAgo).length,
         pending_drafts: messages.filter(m => m.status === 'draft').length,

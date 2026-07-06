@@ -41,7 +41,6 @@ import ContentEditor from './components/ContentEditor';
 function OwnerLayout() {
   const { store_code = 'demo' } = useParams();
   const [store, setStore] = useState<Store | null>(null);
-  const [nearCompletionCount, setNearCompletionCount] = useState(0);
 
   useEffect(() => {
     // Fetch store configuration from backend
@@ -52,17 +51,12 @@ function OwnerLayout() {
       })
       .then((data) => setStore(data))
       .catch((err) => console.error(err));
-
-    fetch(`/api/dashboard/${store_code}`)
-      .then((res) => res.json())
-      .then((data) => setNearCompletionCount(data.near_completion_count ?? 0))
-      .catch((err) => console.error(err));
   }, [store_code]);
 
   return (
     <div className="flex bg-[#fdfdfb] min-h-screen text-stone-800">
       {/* Responsive Sidebar */}
-      <Sidebar storeName={store?.store_name} nearCompletionCount={nearCompletionCount} />
+      <Sidebar storeName={store?.store_name} />
 
       {/* Main Panel Content Area */}
       <main className="flex-1 flex flex-col min-h-screen pb-20 md:pb-6 overflow-x-hidden">
@@ -96,7 +90,7 @@ function OwnerLayout() {
       </main>
 
       {/* Mobile Sticky Bottom Nav Bar */}
-      <BottomNav nearCompletionCount={nearCompletionCount} />
+      <BottomNav />
     </div>
   );
 }
