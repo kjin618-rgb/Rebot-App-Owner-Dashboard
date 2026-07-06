@@ -55,6 +55,7 @@ function toMessage(row: any): Message {
     customer_name: row.customer_name ?? null,
     phone_masked: row.phone_masked ?? '',
     churn_stage: row.churn_stage ?? 'safe',
+    message_type: row.message_type ?? 'winback',
     content: row.content,
     status: row.status,
     created_at: row.created_at,
@@ -318,7 +319,12 @@ export async function getStoreMessages(storeCode: string): Promise<Message[]> {
   return (data || []).map(toMessage);
 }
 
-export async function addMessageDraft(storeCode: string, customerId: string, content: string): Promise<Message> {
+export async function addMessageDraft(
+  storeCode: string,
+  customerId: string,
+  content: string,
+  messageType: 'winback' | 'near_completion' = 'winback',
+): Promise<Message> {
   const storeRow = await getStoreRow(storeCode);
   if (!storeRow) throw new Error('Store not found');
 
@@ -350,6 +356,7 @@ export async function addMessageDraft(storeCode: string, customerId: string, con
       customer_name: customer.name,
       phone_masked: customer.phone_masked,
       churn_stage: customer.churn_stage,
+      message_type: messageType,
       content,
       status: 'draft',
       last_sent_within_30d: (recentSent?.length ?? 0) > 0,
