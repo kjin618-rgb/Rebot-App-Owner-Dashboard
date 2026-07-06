@@ -297,14 +297,19 @@ function CustomersPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ store_code, customer_ids: Array.from(selectedIds) })
     })
-      .then(res => res.json())
-      .then(result => {
+      .then(res => res.json().then(data => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
         setBulkGenerating(false);
+        if (!ok) {
+          setBulkResultMsg(data.error || '메시지 생성 중 오류가 발생했습니다.');
+          setTimeout(() => setBulkResultMsg(''), 4000);
+          return;
+        }
         setSelectedIds(new Set());
-        const skippedNote = result.skipped_no_consent > 0
-          ? ` (${result.skipped_no_consent}건은 마케팅 미동의로 제외)`
+        const skippedNote = data.skipped_no_consent > 0
+          ? ` (${data.skipped_no_consent}건은 마케팅 미동의로 제외)`
           : '';
-        setBulkResultMsg(`메시지 초안 ${result.generated}건 생성 완료${skippedNote}`);
+        setBulkResultMsg(`메시지 초안 ${data.generated}건 생성 완료${skippedNote}`);
         setTimeout(() => setBulkResultMsg(''), 4000);
       })
       .catch(err => {

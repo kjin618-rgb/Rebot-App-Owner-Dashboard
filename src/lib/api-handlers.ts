@@ -361,6 +361,10 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
         sendJson(400, { error: 'store_code and non-empty customer_ids array are required' });
         return true;
       }
+      if (customer_ids.length > 20) {
+        sendJson(400, { error: 'customer_ids는 한 번에 최대 20개까지 처리할 수 있습니다.' });
+        return true;
+      }
 
       const store = await getStore(store_code);
       let generated = 0;
