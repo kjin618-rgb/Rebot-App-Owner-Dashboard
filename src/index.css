@@ -1,42 +1,52 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Plus Jakarta Sans", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  
-  --font-size-xs: 0.8125rem; /* 13px instead of 12px */
-  --font-size-sm: 0.9375rem; /* 15px instead of 14px */
-  --font-size-base: 1.0625rem; /* 17px instead of 16px */
-  --font-size-lg: 1.1875rem; /* 19px instead of 18px */
-  --font-size-xl: 1.375rem; /* 22px instead of 20px */
-  --font-size-2xl: 1.625rem; /* 26px instead of 24px */
-  --font-size-3xl: 2rem; /* 32px instead of 30px */
-  
-  --color-brand-50: #fdfbf7;
-  --color-brand-100: #f8f4eb;
-  --color-brand-200: #eddcc4;
-  --color-brand-300: #dfc19c;
-  --color-brand-400: #cd9f6f;
-  --color-brand-500: #b57c4c;
-  --color-brand-600: #9a6039;
-  --color-brand-700: #804b30;
-  --color-brand-800: #683c2a;
-  --color-brand-900: #543124;
-  
-  --shadow-premium: 0 4px 20px -2px rgba(120, 110, 90, 0.08), 0 2px 8px -1px rgba(120, 110, 90, 0.04);
-  --shadow-premium-hover: 0 12px 30px -4px rgba(120, 110, 90, 0.12), 0 4px 12px -2px rgba(120, 110, 90, 0.06);
+
+  /* DESIGN-v2.md 타이포 스케일 */
+  --font-size-display: 2.5rem;      /* 40px */
+  --font-size-heading-1: 2rem;      /* 32px */
+  --font-size-heading-2: 1.5rem;    /* 24px */
+  --font-size-heading-3: 1.125rem;  /* 18px */
+  --font-size-body-md: 1rem;        /* 16px */
+  --font-size-body-sm: 0.875rem;    /* 14px */
+  --font-size-caption: 0.8125rem;   /* 13px */
+  --font-size-micro: 0.75rem;       /* 12px */
+  --font-size-number-xl: 2.75rem;   /* 44px */
+  --font-size-number-lg: 2.25rem;   /* 36px */
+  --font-size-number-md: 1.75rem;   /* 28px */
+
+  /* DESIGN-v2.md 색상 팔레트 — Navy/Orange/Yellow 3색 제한 */
+  --color-navy: #1C2F3A;
+  --color-orange: #FF8A00;
+  --color-yellow: #FFC400;
+
+  --color-surface: #F8FAFC;
+  --color-surface-soft: #FAFBFC;
+
+  --color-border: #E5E7EB;
+  --color-border-soft: #EEF0F3;
+  --color-border-strong: #CBD5E1;
+
+  --color-muted: #8A94A3;
+  --color-muted-soft: #A8B0BA;
+
+  --shadow-card: 0 4px 16px rgba(28, 47, 58, 0.06);
+  --shadow-card-strong: 0 10px 28px rgba(28, 47, 58, 0.10);
+  --shadow-sidebar-card: 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #fcfbfa;
-  color: #2b2621;
+  background-color: #FFFFFF;
+  color: var(--color-navy);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom layout scrollbars for that hand-crafted premium feeling */
+/* Custom layout scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -45,27 +55,26 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 115, 85, 0.15);
+  background: rgba(28, 47, 58, 0.15);
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 115, 85, 0.3);
+  background: rgba(28, 47, 58, 0.3);
 }
 
-/* Soft transition properties applied to make interactive elements feel heavy, tangible and smooth */
 .interactive-transition {
   transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .premium-card {
   background-color: #ffffff;
-  border: 1px solid rgba(139, 115, 85, 0.09);
-  border-radius: 20px;
-  box-shadow: var(--shadow-premium);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .premium-card:hover {
-  box-shadow: var(--shadow-premium-hover);
-  border-color: rgba(139, 115, 85, 0.18);
+  box-shadow: var(--shadow-card-strong);
+  border-color: var(--color-border-strong);
 }
