@@ -39,7 +39,7 @@ export default function CustomerTable({
                 <th className="py-4.5 px-6 w-10">
                   <input
                     type="checkbox"
-                    checked={customers.length > 0 && customers.every(c => selectedIds?.has(c.id))}
+                    checked={customers.some(c => c.marketing_consent) && customers.filter(c => c.marketing_consent).every(c => selectedIds?.has(c.id))}
                     onChange={() => onToggleSelectAll?.()}
                     className="rounded border-stone-300 text-amber-600 focus:ring-amber-500 h-4 w-4 cursor-pointer"
                   />

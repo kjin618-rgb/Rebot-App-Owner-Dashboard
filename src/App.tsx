@@ -193,6 +193,10 @@ function CustomersPage() {
   const [consentInput, setConsentInput] = useState(true);
   const [successMsg, setSuccessMsg] = useState('');
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkGenerating, setBulkGenerating] = useState(false);
+  const [bulkResultMsg, setBulkResultMsg] = useState('');
+
   const loadCustomers = () => {
     setLoading(true);
     fetch(`/api/customers/${store_code}?filter=${activeTab}`)
@@ -209,6 +213,10 @@ function CustomersPage() {
 
   useEffect(() => {
     loadCustomers();
+  }, [store_code, activeTab]);
+
+  useEffect(() => {
+    setSelectedIds(new Set());
   }, [store_code, activeTab]);
 
   const handleAddCustomer = (e: React.FormEvent) => {
@@ -246,6 +254,46 @@ function CustomersPage() {
     }
     return c.name?.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedIds(prev => {
+      const selectableCustomers = filteredCustomers.filter(c => c.marketing_consent);
+      const allSelected = selectableCustomers.length > 0 && selectableCustomers.every(c => prev.has(c.id));
+      if (allSelected) return new Set();
+      return new Set(selectableCustomers.map(c => c.id));
+    });
+  };
+
+  const handleBulkGenerate = () => {
+    setBulkGenerating(true);
+    fetch('/api/generate-near-completion-messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ store_code, customer_ids: Array.from(selectedIds) })
+    })
+      .then(res => res.json())
+      .then(result => {
+        setBulkGenerating(false);
+        setSelectedIds(new Set());
+        const skippedNote = result.skipped_no_consent > 0
+          ? ` (${result.skipped_no_consent}건은 마케팅 미동의로 제외)`
+          : '';
+        setBulkResultMsg(`완주 임박 메시지 초안 ${result.generated}건 생성 완료${skippedNote}`);
+        setTimeout(() => setBulkResultMsg(''), 4000);
+      })
+      .catch(err => {
+        console.error(err);
+        setBulkGenerating(false);
+      });
+  };
 
   return (
     <div className="space-y-6">
@@ -359,6 +407,33 @@ function CustomersPage() {
         </div>
       </div>
 
+      {activeTab === 'near_completion' && selectedIds.size > 0 && (
+        <div className="flex items-center justify-between gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <span className="text-xs font-semibold text-amber-900">{selectedIds.size}명 선택됨</span>
+          <button
+            onClick={handleBulkGenerate}
+            disabled={bulkGenerating}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 disabled:opacity-60 cursor-pointer"
+          >
+            {bulkGenerating ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                생성 중...
+              </>
+            ) : (
+              `선택한 ${selectedIds.size}명에게 완주 임박 메시지 초안 일괄 생성`
+            )}
+          </button>
+        </div>
+      )}
+
+      {bulkResultMsg && (
+        <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs rounded-xl font-medium flex items-center gap-2">
+          <CheckCircle className="w-4.5 h-4.5 text-emerald-600" />
+          <span>{bulkResultMsg}</span>
+        </div>
+      )}
+
       {/* Table Section */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 text-center space-y-2">
@@ -366,10 +441,14 @@ function CustomersPage() {
           <p className="text-xs text-stone-400">데이터를 로드 중입니다...</p>
         </div>
       ) : (
-        <CustomerTable 
-          storeCode={store_code} 
-          customers={filteredCustomers} 
+        <CustomerTable
+          storeCode={store_code}
+          customers={filteredCustomers}
           onSelectCustomer={c => navigate(`/customers/${store_code}/${c.id}`)}
+          selectable={activeTab === 'near_completion'}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleSelect}
+          onToggleSelectAll={toggleSelectAll}
         />
       )}
     </div>
