@@ -836,9 +836,7 @@ function CustomerDetailPage() {
                   {detail.messages.map((m: any) => (
                     <div key={m.id} className="p-3.5 bg-stone-50 border border-stone-100 rounded-xl space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                          m.status === 'sent' ? 'bg-surface text-navy' : 'bg-surface text-navy'
-                        }`}>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-surface text-navy">
                           {m.status === 'sent' ? '발송 완료' : '초안 대기'}
                         </span>
                         <span className="text-[10px] text-stone-400 font-mono">
