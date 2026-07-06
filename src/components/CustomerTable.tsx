@@ -19,29 +19,29 @@ export default function CustomerTable({
 }: CustomerTableProps) {
   if (customers.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-16 bg-white rounded-2xl border border-stone-200/60 shadow-sm text-center">
-        <div className="w-12 h-12 rounded-2xl bg-stone-50 flex items-center justify-center mb-4 text-stone-300">
+      <div className="flex flex-col items-center justify-center p-16 bg-white rounded-xl border border-border-soft text-center">
+        <div className="w-12 h-12 rounded-xl bg-surface flex items-center justify-center mb-4 text-muted">
           <User className="w-6 h-6" />
         </div>
-        <p className="text-stone-700 font-bold text-sm">조건에 맞는 고객이 없습니다.</p>
-        <p className="text-stone-400 text-xs mt-1">새로운 검색어나 탭을 선택해 보세요.</p>
+        <p className="text-navy font-bold text-body-sm">조건에 맞는 고객이 없습니다.</p>
+        <p className="text-muted text-caption mt-1">새로운 검색어나 탭을 선택해 보세요.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-stone-200/60 overflow-hidden shadow-[0_4px_20px_rgba(139,115,85,0.03)]">
+    <div className="bg-white rounded-xl border border-border-soft overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-stone-50/75 border-b border-stone-100 text-stone-400 text-[10px] font-bold uppercase tracking-wider">
+            <tr className="bg-surface border-b border-border-soft text-muted text-micro font-bold uppercase tracking-wider">
               {selectable && (
                 <th className="py-4.5 px-6 w-10">
                   <input
                     type="checkbox"
                     checked={customers.some(c => c.marketing_consent) && customers.filter(c => c.marketing_consent).every(c => selectedIds?.has(c.id))}
                     onChange={() => onToggleSelectAll?.()}
-                    className="rounded border-stone-300 text-amber-600 focus:ring-amber-500 h-4 w-4 cursor-pointer"
+                    className="rounded border-border text-orange focus:ring-orange h-4 w-4 cursor-pointer"
                   />
                 </th>
               )}
@@ -54,9 +54,9 @@ export default function CustomerTable({
               <th className="py-4.5 px-6"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100 text-xs text-stone-600">
+          <tbody className="divide-y divide-border-soft text-caption text-navy">
             {customers.map((customer) => (
-              <tr key={customer.id} className="hover:bg-brand-50/10 transition-colors duration-200 group">
+              <tr key={customer.id} className="hover:bg-surface transition-colors duration-200 group">
                 {selectable && (
                   <td className="py-4 px-6">
                     <input
@@ -64,49 +64,49 @@ export default function CustomerTable({
                       checked={selectedIds?.has(customer.id) ?? false}
                       disabled={!customer.marketing_consent}
                       onChange={() => onToggleSelect?.(customer.id)}
-                      className="rounded border-stone-300 text-amber-600 focus:ring-amber-500 h-4 w-4 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                      className="rounded border-border text-orange focus:ring-orange h-4 w-4 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                       title={!customer.marketing_consent ? '마케팅 미동의 고객은 선택할 수 없습니다' : undefined}
                     />
                   </td>
                 )}
-                <td className="py-4 px-6 font-semibold text-stone-900">
+                <td className="py-4 px-6 font-semibold text-navy">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center font-bold text-xs border border-brand-100/50">
+                    <div className="w-8 h-8 rounded-lg bg-surface text-navy flex items-center justify-center font-bold text-caption border border-border-soft">
                       {customer.name ? customer.name[0] : '고'}
                     </div>
-                    <span className="group-hover:text-brand-800 transition-colors">{customer.name || '미등록 고객'}</span>
+                    <span>{customer.name || '미등록 고객'}</span>
                     {customer.notes && (
-                      <StickyNote className="w-3.5 h-3.5 text-amber-500 shrink-0" aria-label="메모 있음" />
+                      <StickyNote className="w-3.5 h-3.5 text-yellow shrink-0" aria-label="메모 있음" />
                     )}
                   </div>
                 </td>
-                <td className="py-4 px-6 font-mono text-stone-500 tracking-wide">{customer.phone_masked}</td>
+                <td className="py-4 px-6 font-mono text-muted tracking-wide">{customer.phone_masked}</td>
                 <td className="py-4 px-6">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${CHURN_COLOR[customer.churn_stage]}`}>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-micro font-semibold border ${CHURN_COLOR[customer.churn_stage]}`}>
                     {CHURN_LABEL[customer.churn_stage]}
                   </span>
                 </td>
-                <td className="py-4 px-6 text-stone-500">
+                <td className="py-4 px-6 text-muted">
                   {customer.last_visit_at ? (
                     <div className="flex items-center gap-1.5 font-medium">
-                      <Calendar className="w-3.5 h-3.5 text-stone-400" />
+                      <Calendar className="w-3.5 h-3.5 text-yellow" />
                       <span>{new Date(customer.last_visit_at).toLocaleDateString('ko-KR')}</span>
                     </div>
                   ) : (
-                    <span className="text-stone-300">-</span>
+                    <span className="text-muted-soft">-</span>
                   )}
                 </td>
                 <td className="py-4 px-6 text-center font-medium">
-                  <span className="font-bold text-stone-900 font-mono text-sm">{customer.total_visits}</span>회 / <span className="font-bold text-brand-600 font-mono text-sm">{customer.total_stamps}</span>개
+                  <span className="font-bold text-navy font-mono text-body-sm">{customer.total_visits}</span>회 / <span className="font-bold text-orange font-mono text-body-sm">{customer.total_stamps}</span>개
                 </td>
                 <td className="py-4 px-6">
                   <div className="flex justify-center">
                     {customer.marketing_consent ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-100/50">
-                        <Check className="w-3 h-3 stroke-[2.5]" /> 수신동의
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface text-navy text-micro font-bold border border-border-soft">
+                        <Check className="w-3 h-3 stroke-[2.5] text-yellow" /> 수신동의
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-stone-50 text-stone-400 text-[10px] font-bold border border-stone-100">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface text-muted text-micro font-bold border border-border-soft">
                         <X className="w-3 h-3 stroke-[2.5]" /> 미동의
                       </span>
                     )}
@@ -115,7 +115,7 @@ export default function CustomerTable({
                 <td className="py-4 px-6 text-right">
                   <button
                     onClick={() => onSelectCustomer?.(customer)}
-                    className="px-3.5 py-1.5 text-xs font-bold rounded-lg text-brand-800 bg-brand-50 hover:bg-brand-100 hover:text-brand-900 transition-all border border-brand-100/50 cursor-pointer shadow-xs"
+                    className="px-3.5 py-1.5 text-caption font-bold rounded-md text-navy bg-surface hover:bg-border-soft transition-all border border-border-soft cursor-pointer"
                   >
                     상세 정보
                   </button>
