@@ -1,4 +1,5 @@
-import { buildMessagePrompt, buildPostPrompt } from './prompts';
+import { buildMessagePrompt, buildPostPrompt, buildNearCompletionMessagePrompt } from './prompts';
+import { isNearCompletion } from './db-server';
 import { parseJson } from './openrouter';
 
 // Lazy initialize the Gemini SDK via dynamic import to avoid module-load crash
@@ -151,6 +152,111 @@ export async function generateAIMessage(
   }
 
   return wrapWithComplianceNotice(storeName, body);
+}
+
+function getNearCompletionFallbackMessage(customerName: string | null, currentStamps: number, stampGoal: number, rewardDesc: string, storeName: string, signature: string): string {
+  const greeting = customerName ? `${customerName} 고객님` : '고객님';
+  const remaining = Math.max(stampGoal - currentStamps, 0);
+
+  return `${greeting}, 안녕하세요.
+${storeName}입니다.
+
+스탬프 ${currentStamps}/${stampGoal}개를 모아주셔서 리워드까지 단 ${remaining}개 남았습니다!
+${rewardDesc}
+
+다음 방문 시 스탬프를 적립하시면 리워드에 한 걸음 더 가까워집니다.
+곧 뵙기를 기대하겠습니다.
+
+${signature}`;
+}
+
+export async function generateNearCompletionMessage(
+  customerName: string | null,
+  currentStamps: number,
+  stampGoal: number,
+  rewardDesc: string,
+  storeName: string,
+  signature: string,
+): Promise<string> {
+  const prompt = buildNearCompletionMessagePrompt(
+    customerName, currentStamps, stampGoal, rewardDesc, storeName, signature,
+  );
+
+  let body: string | null = null;
+
+  // 1. Try OpenRouter if key is available
+  if (process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY !== 'MY_OPENROUTER_API_KEY') {
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.0-flash-lite',
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json() as any;
+        const text = data.choices?.[0]?.message?.content;
+        if (text) body = text.trim();
+      }
+    } catch (e) {
+      console.error('OpenRouter near-completion generation failed, trying Gemini', e);
+    }
+  }
+
+  // 2. Try native Gemini client
+  if (!body) {
+    const gemini = await getGeminiClient();
+    if (gemini) {
+      try {
+        const response = await gemini.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+        });
+        if (response && response.text) {
+          body = response.text.trim();
+        }
+      } catch (e) {
+        console.error('Gemini near-completion generation failed, falling back to templates', e);
+      }
+    }
+  }
+
+  // 3. Fallback to templates
+  if (!body) {
+    body = getNearCompletionFallbackMessage(customerName, currentStamps, stampGoal, rewardDesc, storeName, signature);
+  }
+
+  return wrapWithComplianceNotice(storeName, body);
+}
+
+export function decideMessageType(currentStamps: number, stampGoal: number, threshold: number): 'winback' | 'near_completion' {
+  return isNearCompletion(currentStamps, stampGoal, threshold) ? 'near_completion' : 'winback';
+}
+
+export async function generateMessageForCustomer(
+  customerName: string | null,
+  churnStage: string,
+  currentStamps: number,
+  stampGoal: number,
+  nearCompletionThreshold: number,
+  rewardDesc: string,
+  storeName: string,
+  signature: string,
+  totalVisits: number,
+  daysSinceLastVisit: number | null,
+): Promise<{ content: string; messageType: 'winback' | 'near_completion' }> {
+  const messageType = decideMessageType(currentStamps, stampGoal, nearCompletionThreshold);
+
+  const content = messageType === 'near_completion'
+    ? await generateNearCompletionMessage(customerName, currentStamps, stampGoal, rewardDesc, storeName, signature)
+    : await generateAIMessage(customerName, churnStage, rewardDesc, storeName, signature, totalVisits, daysSinceLastVisit, currentStamps, stampGoal);
+
+  return { content, messageType };
 }
 
 export async function generateAIPost(

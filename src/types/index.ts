@@ -44,6 +44,7 @@ export interface Message {
   customer_name: string | null;
   phone_masked: string;
   churn_stage: ChurnStage;
+  message_type: 'winback' | 'near_completion';
   content: string;
   status: 'draft' | 'sent';
   created_at: string;
