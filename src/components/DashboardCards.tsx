@@ -24,7 +24,7 @@ export default function DashboardCards({ totalCustomers, marketingConsentCount, 
           <Users className="w-5 h-5 text-white" />
         </div>
         <div className="space-y-2.5">
-          <p className="text-muted text-body-sm font-semibold">전체 등록 고객</p>
+          <p className="text-navy text-body-sm font-semibold">전체 등록 고객</p>
           <div className="flex items-baseline gap-1.5">
             <h3 className="text-number-xl font-extrabold text-orange tracking-tight font-mono">{totalCustomers}</h3>
             <span className="text-muted text-body-sm font-semibold">명</span>
@@ -39,7 +39,7 @@ export default function DashboardCards({ totalCustomers, marketingConsentCount, 
           <ShieldCheck className="w-5 h-5 text-white" />
         </div>
         <div className="space-y-2.5">
-          <p className="text-muted text-body-sm font-semibold">마케팅 동의 고객</p>
+          <p className="text-navy text-body-sm font-semibold">마케팅 동의 고객</p>
           <div className="flex items-baseline gap-1.5">
             <h3 className="text-number-xl font-extrabold text-yellow tracking-tight font-mono">{marketingConsentCount}</h3>
             <span className="text-muted text-body-sm font-semibold">명</span>
@@ -57,7 +57,7 @@ export default function DashboardCards({ totalCustomers, marketingConsentCount, 
           <AlertCircle className="w-5 h-5 text-white" />
         </div>
         <div className="space-y-2.5">
-          <p className="text-muted text-body-sm font-semibold">관심 및 이탈 위험군</p>
+          <p className="text-navy text-body-sm font-semibold">관심 및 이탈 위험군</p>
           <div className="flex items-baseline gap-1.5">
             <h3 className="text-number-xl font-extrabold text-navy tracking-tight font-mono">{dangerAndWatch}</h3>
             <span className="text-muted text-body-sm font-semibold">명</span>
