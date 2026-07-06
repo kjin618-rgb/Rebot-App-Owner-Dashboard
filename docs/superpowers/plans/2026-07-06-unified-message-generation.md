@@ -146,7 +146,7 @@ git commit -m "feat: 완주임박/이탈 메시지 통합 판단 함수(decideMe
 **Interfaces:**
 - Consumes: Task 1의 `generateMessageForCustomer(...)`.
 
-- [ ] **Step 1: import 교체**
+- [ ] **Step 1: import에 `generateMessageForCustomer` 추가 (기존 이름은 유지)**
 
 `src/lib/api-handlers.ts`의 아래 줄을:
 
@@ -157,8 +157,10 @@ import { generateAIMessage, generateAIPost, generateNearCompletionMessage } from
 아래로 교체한다:
 
 ```typescript
-import { generateAIPost, generateMessageForCustomer } from './ai-server';
+import { generateAIMessage, generateAIPost, generateNearCompletionMessage, generateMessageForCustomer } from './ai-server';
 ```
+
+**주의**: `generateAIMessage`는 아직 `POST /api/messages/:id/regenerate`(Task 3에서 교체 예정)가, `generateNearCompletionMessage`는 아직 벌크 엔드포인트(Task 4에서 교체 예정)가 각각 사용 중이므로 이번 태스크에서는 import에서 제거하지 않는다 — 추가만 한다. `generateAIMessage`/`generateNearCompletionMessage`를 import에서 실제로 제거하는 시점은 각각 Task 3/Task 4다(각 태스크 설명에 반영됨).
 
 - [ ] **Step 2: `POST /api/generate-message` 핸들러 교체**
 
@@ -364,6 +366,29 @@ git commit -m "feat: 개별 메시지 생성 API가 완주임박/이탈 통합 �
 
         const updated = await patchMessage(store_code, messageId, { content, message_type: messageType });
 ```
+
+- [ ] **Step 2-1: import에서 `generateAIMessage` 제거 (더 이상 사용처 없음)**
+
+이 시점에서 `api-handlers.ts` 안에 `generateAIMessage(`를 호출하는 곳이 없는지 확인한다:
+
+```bash
+grep -n "generateAIMessage(" src/lib/api-handlers.ts
+```
+Expected: 아무 출력도 없어야 한다(Task 2가 개별 생성 핸들러를, 이번 Step 2가 재생성 핸들러를 각각 `generateMessageForCustomer`로 교체했으므로).
+
+확인되면 import 줄을:
+
+```typescript
+import { generateAIMessage, generateAIPost, generateNearCompletionMessage, generateMessageForCustomer } from './ai-server';
+```
+
+아래로 교체한다:
+
+```typescript
+import { generateAIPost, generateNearCompletionMessage, generateMessageForCustomer } from './ai-server';
+```
+
+(`generateNearCompletionMessage`는 아직 벌크 엔드포인트가 사용 중이므로 유지 — Task 4에서 제거한다.)
 
 - [ ] **Step 3: 타입 체크**
 
@@ -582,6 +607,27 @@ git commit -m "feat: patchMessage에 message_type 업데이트 지원 추가, �
       sendJson(200, { generated, skipped_no_consent });
       return true;
     }
+```
+
+- [ ] **Step 1-1: import에서 `generateNearCompletionMessage` 제거 (더 이상 사용처 없음)**
+
+이 시점에서 `api-handlers.ts` 안에 `generateNearCompletionMessage(`를 호출하는 곳이 없는지 확인한다:
+
+```bash
+grep -n "generateNearCompletionMessage(" src/lib/api-handlers.ts
+```
+Expected: 아무 출력도 없어야 한다(방금 교체한 벌크 핸들러가 마지막 사용처였음).
+
+확인되면 import 줄을:
+
+```typescript
+import { generateAIPost, generateNearCompletionMessage, generateMessageForCustomer } from './ai-server';
+```
+
+아래로 교체한다:
+
+```typescript
+import { generateAIPost, generateMessageForCustomer } from './ai-server';
 ```
 
 - [ ] **Step 2: 타입 체크**
