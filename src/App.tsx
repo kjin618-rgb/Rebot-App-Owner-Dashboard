@@ -128,8 +128,8 @@ function DashboardPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center space-y-3">
-        <div className="w-10 h-10 border-4 border-amber-100 border-t-amber-600 rounded-full animate-spin" />
-        <p className="text-sm text-stone-500 font-medium">대시보드 지표를 집계하고 있습니다...</p>
+        <div className="w-10 h-10 border-4 border-border border-t-orange rounded-full animate-spin" />
+        <p className="text-body-sm text-muted font-medium">대시보드 지표를 집계하고 있습니다...</p>
       </div>
     );
   }
@@ -139,16 +139,16 @@ function DashboardPage() {
       {/* Top Welcome Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight">사장님 대시보드</h1>
-          <p className="text-xs md:text-sm text-stone-500 font-normal">
+          <h1 className="text-heading-1 font-bold text-navy tracking-tight">사장님 대시보드</h1>
+          <p className="text-body-sm text-muted font-normal">
             재방문 주기가 흐려지는 단골 고객들을 모니터링하고 AI 솔루션으로 복귀를 유도하세요.
           </p>
         </div>
-        <button 
+        <button
           onClick={loadData}
-          className="self-start sm:self-center flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors"
+          className="self-start sm:self-center flex items-center gap-1.5 px-3 py-1.5 text-caption font-semibold rounded-md bg-white border border-border text-navy hover:bg-surface transition-colors"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <RefreshCw className="w-3.5 h-3.5 text-yellow" />
           새로고침
         </button>
       </div>
