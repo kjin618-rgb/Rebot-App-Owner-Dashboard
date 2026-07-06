@@ -231,7 +231,11 @@ function CustomersPage() {
 
   useEffect(() => {
     setSelectedIds(new Set());
-  }, [store_code, activeTab]);
+  }, [store_code, activeTab, searchTerm]);
+
+  useEffect(() => {
+    setActiveTab(resolveInitialCustomerTab(searchParams.get('tab')));
+  }, [searchParams]);
 
   const handleAddCustomer = (e: React.FormEvent) => {
     e.preventDefault();
