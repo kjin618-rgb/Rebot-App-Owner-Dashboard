@@ -119,6 +119,10 @@ export async function updateStore(storeCode: string, settings: Partial<Store>): 
 
 // ─── Customer ─────────────────────────────────────────────────────────────────
 
+export function isNearCompletion(currentStamps: number, stampGoal: number, threshold: number): boolean {
+  return (currentStamps / stampGoal) * 100 >= threshold;
+}
+
 export async function getCustomers(storeCode: string, filter: string = 'all'): Promise<Customer[]> {
   const storeRow = await getStoreRow(storeCode);
   if (!storeRow) return [];
@@ -134,10 +138,7 @@ export async function getCustomers(storeCode: string, filter: string = 'all'): P
   if (filter === 'all') return customers;
 
   if (filter === 'near_completion') {
-    return customers.filter(c => {
-      const completionRatio = (c.current_stamps / storeRow.stamp_goal) * 100;
-      return completionRatio >= storeRow.near_completion_threshold;
-    });
+    return customers.filter(c => isNearCompletion(c.current_stamps, storeRow.stamp_goal, storeRow.near_completion_threshold));
   }
 
   return customers.filter(c => c.churn_stage === filter);
