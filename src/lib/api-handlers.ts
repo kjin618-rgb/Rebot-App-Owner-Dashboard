@@ -15,7 +15,7 @@ import {
   saveContentDraft,
   isNearCompletion,
 } from './db-server';
-import { generateAIPost, generateNearCompletionMessage, generateMessageForCustomer } from './ai-server';
+import { generateAIPost, generateMessageForCustomer } from './ai-server';
 import { calcStampCompletionRate, calcSecondVisitRate30d } from './metrics';
 
 function calcDaysSince(dateStr: string | null): number | null {
@@ -352,8 +352,8 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
       return true;
     }
 
-    // 17. POST /api/generate-near-completion-messages
-    match = pathname.match(/^\/api\/generate-near-completion-messages$/);
+    // 17. POST /api/generate-messages/bulk
+    match = pathname.match(/^\/api\/generate-messages\/bulk$/);
     if (match && method === 'POST') {
       const body = await getRequestBody(req);
       const { store_code, customer_ids } = body;
@@ -375,15 +375,19 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
           continue;
         }
 
-        const content = await generateNearCompletionMessage(
+        const { content, messageType } = await generateMessageForCustomer(
           detail.customer.name,
+          detail.customer.churn_stage,
           detail.customer.current_stamps,
           store.stamp_goal,
+          store.near_completion_threshold,
           store.reward_desc,
           store.store_name,
           store.message_signature,
+          detail.customer.total_visits,
+          calcDaysSince(detail.customer.last_visit_at),
         );
-        await addMessageDraft(store_code, customerId, content, 'near_completion');
+        await addMessageDraft(store_code, customerId, content, messageType);
         generated++;
       }
 
