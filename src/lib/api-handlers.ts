@@ -14,7 +14,7 @@ import {
   getSavedContentDrafts,
   saveContentDraft,
 } from './db-server';
-import { generateAIMessage, generateAIPost } from './ai-server';
+import { generateAIMessage, generateAIPost, generateNearCompletionMessage } from './ai-server';
 import { calcStampCompletionRate, calcSecondVisitRate30d } from './metrics';
 
 function calcDaysSince(dateStr: string | null): number | null {
@@ -342,6 +342,45 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
         incremental_revisit_rate: 16.3,
         marketing_consent_rate: 82.0,
       });
+      return true;
+    }
+
+    // 17. POST /api/generate-near-completion-messages
+    match = pathname.match(/^\/api\/generate-near-completion-messages$/);
+    if (match && method === 'POST') {
+      const body = await getRequestBody(req);
+      const { store_code, customer_ids } = body;
+      if (!store_code || !Array.isArray(customer_ids) || customer_ids.length === 0) {
+        sendJson(400, { error: 'store_code and non-empty customer_ids array are required' });
+        return true;
+      }
+
+      const store = await getStore(store_code);
+      let generated = 0;
+      let skipped_no_consent = 0;
+
+      // AI 공급자 요청이 순간적으로 몰리지 않도록 순차 처리한다.
+      for (const customerId of customer_ids) {
+        const detail = await getCustomerById(store_code, customerId);
+        if (!detail) continue;
+        if (!detail.customer.marketing_consent) {
+          skipped_no_consent++;
+          continue;
+        }
+
+        const content = await generateNearCompletionMessage(
+          detail.customer.name,
+          detail.customer.current_stamps,
+          store.stamp_goal,
+          store.reward_desc,
+          store.store_name,
+          store.message_signature,
+        );
+        await addMessageDraft(store_code, customerId, content, 'near_completion');
+        generated++;
+      }
+
+      sendJson(200, { generated, skipped_no_consent });
       return true;
     }
 
