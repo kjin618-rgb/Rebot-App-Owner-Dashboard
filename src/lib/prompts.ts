@@ -71,3 +71,43 @@ export function buildPostPrompt(
   "hashtags": "추천 해시태그 목록 (공백으로 구분된 해시태그들)"
 }`;
 }
+
+export function buildNearCompletionMessagePrompt(
+  customerName: string | null,
+  currentStamps: number,
+  stampGoal: number,
+  rewardDesc: string,
+  storeName: string,
+  signature: string,
+): string {
+  const nameLine = customerName !== null
+    ? `\n- 이름: ${customerName}`
+    : '';
+  const remaining = Math.max(stampGoal - currentStamps, 0);
+
+  return `당신은 카페/베이커리 매장 "${storeName}"을 운영하는 사장님입니다.
+아래 고객 정보를 참고해 스탬프 완주(리워드 달성)를 앞둔 고객에게 보낼 응원 메시지 본문을 작성해주세요.
+
+[고객 정보]${nameLine}
+- 현재 스탬프: ${currentStamps}/${stampGoal}개 (남은 스탬프: ${remaining}개)
+- 매장 리워드: ${rewardDesc}
+
+[메시지 구조 — 반드시 이 순서로 작성]
+1. 인사: "고객님, 안녕하세요." (이름이 있으면 "{이름} 고객님, 안녕하세요.") 다음 줄에 "${storeName}입니다."로 자기소개
+2. 진행 상황 축하: 스탬프가 거의 다 찼다는 사실을 밝고 긍정적으로 언급 (예: "조금만 더 채우시면 리워드입니다")
+3. 리워드 안내: 완주 시 받을 혜택(${rewardDesc})을 구체적으로 안내
+4. 행동 유도: 매장 방문 시 스탬프를 적립하면 된다는 명확한 안내
+
+[작성 규칙 — 반드시 지킬 것]
+1. 한국어 존댓말, 사장님이 직접 쓴 듯한 자연스러운 톤. 축하/응원하는 밝은 분위기를 유지한다
+2. 전체 분량은 1,000자를 넘지 않는다
+3. 특정 메뉴명이나 결제 금액을 직접 언급하지 않는다
+4. 실제로 존재하지 않는 마감 기한이나 긴급성("오늘까지만" 등)을 지어내지 않는다
+5. 이탈/재방문 유도 표현("오랜만에", "그동안 안 오셔서" 등)은 쓰지 않는다 — 이 고객은 최근에도 방문한 활성 고객이다
+6. 고객 이름 정보가 없으면 "OOO님" 대신 그냥 "고객님"으로 부른다
+7. 매장명은 항상 정확히 "${storeName}"로만 지칭하고 다른 이름으로 바꾸어 부르지 않는다
+8. 광고 문구, 수신거부 안내, 매장명 태그는 절대 넣지 않는다(시스템이 별도로 붙입니다) — 메시지 본문만 작성
+9. 마지막은 사장님 서명으로 마무리: "${signature}"
+
+메시지 본문만 반환하세요 (따옴표나 설명 없이).`;
+}
