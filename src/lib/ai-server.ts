@@ -1,4 +1,5 @@
 import { buildMessagePrompt, buildPostPrompt, buildNearCompletionMessagePrompt } from './prompts';
+import { isNearCompletion } from './db-server';
 import { parseJson } from './openrouter';
 
 // Lazy initialize the Gemini SDK via dynamic import to avoid module-load crash
@@ -231,6 +232,31 @@ export async function generateNearCompletionMessage(
   }
 
   return wrapWithComplianceNotice(storeName, body);
+}
+
+export function decideMessageType(currentStamps: number, stampGoal: number, threshold: number): 'winback' | 'near_completion' {
+  return isNearCompletion(currentStamps, stampGoal, threshold) ? 'near_completion' : 'winback';
+}
+
+export async function generateMessageForCustomer(
+  customerName: string | null,
+  churnStage: string,
+  currentStamps: number,
+  stampGoal: number,
+  nearCompletionThreshold: number,
+  rewardDesc: string,
+  storeName: string,
+  signature: string,
+  totalVisits: number,
+  daysSinceLastVisit: number | null,
+): Promise<{ content: string; messageType: 'winback' | 'near_completion' }> {
+  const messageType = decideMessageType(currentStamps, stampGoal, nearCompletionThreshold);
+
+  const content = messageType === 'near_completion'
+    ? await generateNearCompletionMessage(customerName, currentStamps, stampGoal, rewardDesc, storeName, signature)
+    : await generateAIMessage(customerName, churnStage, rewardDesc, storeName, signature, totalVisits, daysSinceLastVisit, currentStamps, stampGoal);
+
+  return { content, messageType };
 }
 
 export async function generateAIPost(
