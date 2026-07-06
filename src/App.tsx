@@ -1014,51 +1014,51 @@ function MessagesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight">AI 고객 제안 메시지</h1>
-        <p className="text-xs md:text-sm text-stone-500">
+        <h1 className="text-heading-1 font-bold text-navy tracking-tight">AI 고객 제안 메시지</h1>
+        <p className="text-body-sm text-muted">
           이탈 위험 고객을 분석해 자동으로 작성된 맞춤 리마인드 메시지 초안을 편집하고 전송합니다.
         </p>
       </div>
 
       {toastMsg && (
-        <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold rounded-xl flex items-center gap-2">
-          <CheckCircle className="w-4.5 h-4.5 text-amber-600 animate-pulse" />
+        <div className="p-4 bg-surface border border-border-soft text-navy text-caption font-semibold rounded-xl flex items-center gap-2">
+          <CheckCircle className="w-4.5 h-4.5 text-yellow animate-pulse" />
           <span>{toastMsg}</span>
         </div>
       )}
 
       {/* Editing Modal Dialog */}
       {editingMsg && (
-        <div className="fixed inset-0 bg-stone-900/45 flex items-center justify-center p-4 z-50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-xl border border-stone-100">
-            <h3 className="font-bold text-stone-900 text-base">메시지 내용 편집</h3>
+        <div className="fixed inset-0 bg-navy/45 flex items-center justify-center p-4 z-50 backdrop-blur-xs">
+          <div className="bg-white rounded-xl max-w-xl w-full p-6 space-y-4 shadow-xl border border-border-soft">
+            <h3 className="font-bold text-navy text-body-md">메시지 내용 편집</h3>
             <form onSubmit={handleSaveEdit} className="space-y-4">
               <textarea
                 rows={8}
                 value={editContent}
                 onChange={e => setEditContent(e.target.value)}
-                className="w-full text-sm p-4 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 leading-relaxed whitespace-pre-wrap"
+                className="w-full text-body-sm p-4 bg-surface border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange leading-relaxed whitespace-pre-wrap"
               />
-              <div className={`text-right text-xs font-medium ${editContent.length >= 900 ? 'text-amber-600' : 'text-stone-400'}`}>
+              <div className={`text-right text-caption font-medium ${editContent.length >= 900 ? 'text-orange' : 'text-muted'}`}>
                 {editContent.length.toLocaleString()} / 1,000자
               </div>
               {editContent.length >= 900 && (
-                <div className="flex items-start gap-2 bg-amber-50 rounded-lg p-3 text-xs text-amber-800 border border-amber-100/60">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+                <div className="flex items-start gap-2 bg-surface rounded-lg p-3 text-caption text-navy border border-border-soft">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-yellow" />
                   <span>메시지는 1,000자 이하로 작성해 주세요. 핵심 내용만 간결하게 정리하면 고객이 더 쉽게 읽을 수 있어요.</span>
                 </div>
               )}
               <div className="flex justify-end gap-2.5">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold cursor-pointer"
+                  className="px-4 py-2 bg-orange hover:bg-orange/90 text-white rounded-md text-caption font-bold cursor-pointer"
                 >
                   변경사항 저장
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingMsg(null)}
-                  className="px-4 py-2 border border-stone-200 hover:bg-stone-50 rounded-xl text-xs text-stone-500 font-semibold"
+                  className="px-4 py-2 border border-border hover:bg-surface rounded-md text-caption text-muted font-semibold"
                 >
                   취소
                 </button>
@@ -1070,8 +1070,8 @@ function MessagesPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 text-center space-y-2">
-          <div className="w-8 h-8 border-3 border-amber-100 border-t-amber-600 rounded-full animate-spin" />
-          <p className="text-xs text-stone-400">초안을 불러오고 있습니다...</p>
+          <div className="w-8 h-8 border-3 border-border border-t-orange rounded-full animate-spin" />
+          <p className="text-caption text-muted">초안을 불러오고 있습니다...</p>
         </div>
       ) : (
         <MessageList
