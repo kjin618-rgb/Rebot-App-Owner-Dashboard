@@ -580,7 +580,7 @@ function CustomerDetailPage() {
       .then(res => res.json())
       .then(() => {
         setIsGeneratingMessage(false);
-        setSuccessMsg('AI 기반 개인맞춤 혜택 복귀 제안 메시지가 신규 생성되었습니다! 메시지 발송 패널에서 확인하세요.');
+        setSuccessMsg('고객 맞춤 메시지가 생성되었습니다. 메시지 발송 패널에서 확인하세요.');
         setTimeout(() => {
           setSuccessMsg('');
           navigate(`/messages/${store_code}`);
@@ -671,7 +671,7 @@ function CustomerDetailPage() {
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                AI 맞춤 복귀 제안 생성
+                고객 맞춤 메시지 생성
               </>
             )}
           </button>
