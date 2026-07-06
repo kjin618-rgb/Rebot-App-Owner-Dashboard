@@ -15,7 +15,7 @@ import {
   saveContentDraft,
   isNearCompletion,
 } from './db-server';
-import { generateAIMessage, generateAIPost, generateNearCompletionMessage } from './ai-server';
+import { generateAIMessage, generateAIPost, generateNearCompletionMessage, generateMessageForCustomer } from './ai-server';
 import { calcStampCompletionRate, calcSecondVisitRate30d } from './metrics';
 
 function calcDaysSince(dateStr: string | null): number | null {
@@ -194,18 +194,19 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
       ]);
       if (!detail) { sendJson(404, { error: 'Customer not found' }); return true; }
 
-      const content = await generateAIMessage(
+      const { content, messageType } = await generateMessageForCustomer(
         detail.customer.name,
         detail.customer.churn_stage,
+        detail.customer.current_stamps,
+        store.stamp_goal,
+        store.near_completion_threshold,
         store.reward_desc,
         store.store_name,
         store.message_signature,
         detail.customer.total_visits,
         calcDaysSince(detail.customer.last_visit_at),
-        detail.customer.current_stamps,
-        store.stamp_goal,
       );
-      const newMsg = await addMessageDraft(store_code, customer_id, content);
+      const newMsg = await addMessageDraft(store_code, customer_id, content, messageType);
       sendJson(200, newMsg);
       return true;
     }
