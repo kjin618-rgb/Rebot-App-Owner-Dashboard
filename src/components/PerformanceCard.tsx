@@ -57,7 +57,7 @@ export default function PerformanceCard({ metrics }: PerformanceCardProps) {
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-border-soft shadow-[0_4px_16px_rgba(28,47,58,0.06)] p-6 space-y-5">
+    <div className="bg-white rounded-xl border border-border-soft shadow-card p-6 space-y-5">
       <div className="flex items-center justify-between border-b border-border-soft pb-3.5">
         <h4 className="font-bold text-navy text-heading-3 tracking-tight">캠페인 및 매장 핵심 성과 지표</h4>
         {metrics?.incremental_revisit_rate !== null && metrics?.incremental_revisit_rate !== undefined && (

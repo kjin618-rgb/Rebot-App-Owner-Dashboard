@@ -29,7 +29,7 @@ function formatTimeAgo(isoString: string): string {
 export default function ActivityFeed({ activities }: ActivityFeedProps) {
   if (!activities || activities.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-border-soft shadow-[0_4px_16px_rgba(28,47,58,0.06)] p-6 text-center text-muted">
+      <div className="bg-white rounded-xl border border-border-soft shadow-card p-6 text-center text-muted">
         최근 활동 내역이 없습니다.
       </div>
     );
@@ -43,7 +43,7 @@ export default function ActivityFeed({ activities }: ActivityFeedProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-border-soft shadow-[0_4px_16px_rgba(28,47,58,0.06)] p-6 space-y-4">
+    <div className="bg-white rounded-xl border border-border-soft shadow-card p-6 space-y-4 h-full">
       <div className="flex items-center justify-between border-b border-border-soft pb-3">
         <h4 className="font-semibold text-navy text-heading-3">실시간 매장 활동 피드</h4>
         <span className="flex items-center gap-1 text-micro font-semibold text-navy bg-surface px-2 py-0.5 rounded-full border border-border-soft">
