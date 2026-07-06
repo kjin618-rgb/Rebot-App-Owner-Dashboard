@@ -65,6 +65,11 @@ export default function MessageList({ messages, onSend, onDelete, onEdit, onRege
                     <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${CHURN_COLOR[msg.churn_stage]}`}>
                       {CHURN_LABEL[msg.churn_stage]}
                     </span>
+                    {msg.message_type === 'near_completion' && (
+                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                        🎁 완주 임박
+                      </span>
+                    )}
                     {!msg.marketing_consent && (
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-500 border border-stone-200">
                         마케팅 미동의
