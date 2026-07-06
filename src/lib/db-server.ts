@@ -55,6 +55,7 @@ function toMessage(row: any): Message {
     customer_name: row.customer_name ?? null,
     phone_masked: row.phone_masked ?? '',
     churn_stage: row.churn_stage ?? 'safe',
+    message_type: row.message_type ?? 'winback',
     content: row.content,
     status: row.status,
     created_at: row.created_at,
@@ -118,6 +119,10 @@ export async function updateStore(storeCode: string, settings: Partial<Store>): 
 
 // ─── Customer ─────────────────────────────────────────────────────────────────
 
+export function isNearCompletion(currentStamps: number, stampGoal: number, threshold: number): boolean {
+  return (currentStamps / stampGoal) * 100 >= threshold;
+}
+
 export async function getCustomers(storeCode: string, filter: string = 'all'): Promise<Customer[]> {
   const storeRow = await getStoreRow(storeCode);
   if (!storeRow) return [];
@@ -133,10 +138,7 @@ export async function getCustomers(storeCode: string, filter: string = 'all'): P
   if (filter === 'all') return customers;
 
   if (filter === 'near_completion') {
-    return customers.filter(c => {
-      const completionRatio = (c.current_stamps / storeRow.stamp_goal) * 100;
-      return completionRatio >= storeRow.near_completion_threshold;
-    });
+    return customers.filter(c => isNearCompletion(c.current_stamps, storeRow.stamp_goal, storeRow.near_completion_threshold));
   }
 
   return customers.filter(c => c.churn_stage === filter);
@@ -318,7 +320,12 @@ export async function getStoreMessages(storeCode: string): Promise<Message[]> {
   return (data || []).map(toMessage);
 }
 
-export async function addMessageDraft(storeCode: string, customerId: string, content: string): Promise<Message> {
+export async function addMessageDraft(
+  storeCode: string,
+  customerId: string,
+  content: string,
+  messageType: 'winback' | 'near_completion' = 'winback',
+): Promise<Message> {
   const storeRow = await getStoreRow(storeCode);
   if (!storeRow) throw new Error('Store not found');
 
@@ -350,6 +357,7 @@ export async function addMessageDraft(storeCode: string, customerId: string, con
       customer_name: customer.name,
       phone_masked: customer.phone_masked,
       churn_stage: customer.churn_stage,
+      message_type: messageType,
       content,
       status: 'draft',
       last_sent_within_30d: (recentSent?.length ?? 0) > 0,
@@ -369,6 +377,7 @@ export async function patchMessage(storeCode: string, id: string, updates: Parti
   if (updates.content !== undefined) dbUpdates.content = updates.content;
   if (updates.status !== undefined) dbUpdates.status = updates.status;
   if (updates.sent_at !== undefined) dbUpdates.sent_at = updates.sent_at;
+  if (updates.message_type !== undefined) dbUpdates.message_type = updates.message_type;
 
   const { data } = await getSupabase()
     .from('messages')

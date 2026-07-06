@@ -14,7 +14,7 @@ import {
   getSavedContentDrafts,
   saveContentDraft,
 } from './db-server';
-import { generateAIMessage, generateAIPost } from './ai-server';
+import { generateAIPost, generateMessageForCustomer } from './ai-server';
 import { calcStampCompletionRate, calcSecondVisitRate30d } from './metrics';
 
 function calcDaysSince(dateStr: string | null): number | null {
@@ -189,18 +189,19 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
       ]);
       if (!detail) { sendJson(404, { error: 'Customer not found' }); return true; }
 
-      const content = await generateAIMessage(
+      const { content, messageType } = await generateMessageForCustomer(
         detail.customer.name,
         detail.customer.churn_stage,
+        detail.customer.current_stamps,
+        store.stamp_goal,
+        store.near_completion_threshold,
         store.reward_desc,
         store.store_name,
         store.message_signature,
         detail.customer.total_visits,
         calcDaysSince(detail.customer.last_visit_at),
-        detail.customer.current_stamps,
-        store.stamp_goal,
       );
-      const newMsg = await addMessageDraft(store_code, customer_id, content);
+      const newMsg = await addMessageDraft(store_code, customer_id, content, messageType);
       sendJson(200, newMsg);
       return true;
     }
@@ -255,19 +256,20 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
         ]);
         if (!detail) { sendJson(404, { error: 'Customer not found' }); return true; }
 
-        const content = await generateAIMessage(
+        const { content, messageType } = await generateMessageForCustomer(
           detail.customer.name,
           detail.customer.churn_stage,
+          detail.customer.current_stamps,
+          store.stamp_goal,
+          store.near_completion_threshold,
           store.reward_desc,
           store.store_name,
           store.message_signature,
           detail.customer.total_visits,
           calcDaysSince(detail.customer.last_visit_at),
-          detail.customer.current_stamps,
-          store.stamp_goal,
         );
 
-        const updated = await patchMessage(store_code, messageId, { content });
+        const updated = await patchMessage(store_code, messageId, { content, message_type: messageType });
         sendJson(200, updated);
       } catch (err: any) {
         sendJson(404, { error: err.message });
@@ -342,6 +344,53 @@ export async function handleApiRequest(req: any, res: any): Promise<boolean> {
         incremental_revisit_rate: 16.3,
         marketing_consent_rate: 82.0,
       });
+      return true;
+    }
+
+    // 17. POST /api/generate-messages/bulk
+    match = pathname.match(/^\/api\/generate-messages\/bulk$/);
+    if (match && method === 'POST') {
+      const body = await getRequestBody(req);
+      const { store_code, customer_ids } = body;
+      if (!store_code || !Array.isArray(customer_ids) || customer_ids.length === 0) {
+        sendJson(400, { error: 'store_code and non-empty customer_ids array are required' });
+        return true;
+      }
+      if (customer_ids.length > 20) {
+        sendJson(400, { error: 'customer_ids는 한 번에 최대 20개까지 처리할 수 있습니다.' });
+        return true;
+      }
+
+      const store = await getStore(store_code);
+      let generated = 0;
+      let skipped_no_consent = 0;
+
+      // AI 공급자 요청이 순간적으로 몰리지 않도록 순차 처리한다.
+      for (const customerId of customer_ids) {
+        const detail = await getCustomerById(store_code, customerId);
+        if (!detail) continue;
+        if (!detail.customer.marketing_consent) {
+          skipped_no_consent++;
+          continue;
+        }
+
+        const { content, messageType } = await generateMessageForCustomer(
+          detail.customer.name,
+          detail.customer.churn_stage,
+          detail.customer.current_stamps,
+          store.stamp_goal,
+          store.near_completion_threshold,
+          store.reward_desc,
+          store.store_name,
+          store.message_signature,
+          detail.customer.total_visits,
+          calcDaysSince(detail.customer.last_visit_at),
+        );
+        await addMessageDraft(store_code, customerId, content, messageType);
+        generated++;
+      }
+
+      sendJson(200, { generated, skipped_no_consent });
       return true;
     }
 

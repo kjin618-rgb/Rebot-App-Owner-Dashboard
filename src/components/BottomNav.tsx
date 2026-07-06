@@ -31,7 +31,7 @@ export default function BottomNav() {
           >
             {({ isActive }) => (
               <>
-                <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-brand-50 text-brand-700' : 'bg-transparent text-stone-400'}`}>
+                <div className={`relative p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-brand-50 text-brand-700' : 'bg-transparent text-stone-400'}`}>
                   <Icon className="w-4.5 h-4.5 shrink-0" />
                 </div>
                 <span className="text-[9px] font-semibold tracking-wider">{item.name}</span>

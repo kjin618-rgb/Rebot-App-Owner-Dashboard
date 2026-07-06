@@ -7,9 +7,16 @@ interface CustomerTableProps {
   storeCode: string;
   customers: CustomerRow[];
   onSelectCustomer?: (customer: CustomerRow) => void;
+  selectable?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
+  onToggleSelectAll?: () => void;
 }
 
-export default function CustomerTable({ storeCode, customers, onSelectCustomer }: CustomerTableProps) {
+export default function CustomerTable({
+  storeCode, customers, onSelectCustomer,
+  selectable = false, selectedIds, onToggleSelect, onToggleSelectAll,
+}: CustomerTableProps) {
   if (customers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-16 bg-white rounded-2xl border border-stone-200/60 shadow-sm text-center">
@@ -28,6 +35,16 @@ export default function CustomerTable({ storeCode, customers, onSelectCustomer }
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-stone-50/75 border-b border-stone-100 text-stone-400 text-[10px] font-bold uppercase tracking-wider">
+              {selectable && (
+                <th className="py-4.5 px-6 w-10">
+                  <input
+                    type="checkbox"
+                    checked={customers.some(c => c.marketing_consent) && customers.filter(c => c.marketing_consent).every(c => selectedIds?.has(c.id))}
+                    onChange={() => onToggleSelectAll?.()}
+                    className="rounded border-stone-300 text-amber-600 focus:ring-amber-500 h-4 w-4 cursor-pointer"
+                  />
+                </th>
+              )}
               <th className="py-4.5 px-6">고객명</th>
               <th className="py-4.5 px-6">전화번호</th>
               <th className="py-4.5 px-6">이탈 위험군</th>
@@ -40,6 +57,18 @@ export default function CustomerTable({ storeCode, customers, onSelectCustomer }
           <tbody className="divide-y divide-stone-100 text-xs text-stone-600">
             {customers.map((customer) => (
               <tr key={customer.id} className="hover:bg-brand-50/10 transition-colors duration-200 group">
+                {selectable && (
+                  <td className="py-4 px-6">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds?.has(customer.id) ?? false}
+                      disabled={!customer.marketing_consent}
+                      onChange={() => onToggleSelect?.(customer.id)}
+                      className="rounded border-stone-300 text-amber-600 focus:ring-amber-500 h-4 w-4 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                      title={!customer.marketing_consent ? '마케팅 미동의 고객은 선택할 수 없습니다' : undefined}
+                    />
+                  </td>
+                )}
                 <td className="py-4 px-6 font-semibold text-stone-900">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center font-bold text-xs border border-brand-100/50">
