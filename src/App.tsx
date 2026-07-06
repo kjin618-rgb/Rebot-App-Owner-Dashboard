@@ -304,7 +304,10 @@ function CustomersPage() {
           ? ` (${data.skipped_no_consent}건은 마케팅 미동의로 제외)`
           : '';
         setBulkResultMsg(`메시지 초안 ${data.generated}건 생성 완료${skippedNote}`);
-        setTimeout(() => setBulkResultMsg(''), 4000);
+        setTimeout(() => {
+          setBulkResultMsg('');
+          navigate(`/messages/${store_code}`);
+        }, 4000);
       })
       .catch(err => {
         console.error(err);
