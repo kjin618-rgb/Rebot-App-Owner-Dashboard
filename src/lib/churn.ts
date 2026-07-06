@@ -7,11 +7,13 @@ export const CHURN_LABEL: Record<ChurnStage, string> = {
   churned: '장기 미방문',
 };
 
+// 디자인 시스템 v2: 이탈 단계는 색상이 아니라 CHURN_LABEL의 문구로만 구분한다
+// (Green/Blue/Purple/Red 금지, 상태는 텍스트로 표현).
 export const CHURN_COLOR: Record<ChurnStage, string> = {
-  safe: 'bg-green-100 text-green-800 border-green-200',
-  watch: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  danger: 'bg-orange-100 text-orange-800 border-orange-200',
-  churned: 'bg-red-100 text-red-800 border-red-200',
+  safe: 'bg-surface text-navy border-border-soft',
+  watch: 'bg-surface text-navy border-border-soft',
+  danger: 'bg-surface text-navy border-border-soft',
+  churned: 'bg-surface text-navy border-border-soft',
 };
 
 export function calcChurn(dates: string[]): ChurnStage {
