@@ -292,7 +292,7 @@ function CustomersPage() {
 
   const handleBulkGenerate = () => {
     setBulkGenerating(true);
-    fetch('/api/generate-near-completion-messages', {
+    fetch('/api/generate-messages/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ store_code, customer_ids: Array.from(selectedIds) })
@@ -304,7 +304,7 @@ function CustomersPage() {
         const skippedNote = result.skipped_no_consent > 0
           ? ` (${result.skipped_no_consent}건은 마케팅 미동의로 제외)`
           : '';
-        setBulkResultMsg(`완주 임박 메시지 초안 ${result.generated}건 생성 완료${skippedNote}`);
+        setBulkResultMsg(`메시지 초안 ${result.generated}건 생성 완료${skippedNote}`);
         setTimeout(() => setBulkResultMsg(''), 4000);
       })
       .catch(err => {
@@ -425,7 +425,7 @@ function CustomersPage() {
         </div>
       </div>
 
-      {activeTab === 'near_completion' && selectedIds.size > 0 && (
+      {selectedIds.size > 0 && (
         <div className="flex items-center justify-between gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
           <span className="text-xs font-semibold text-amber-900">{selectedIds.size}명 선택됨</span>
           <button
@@ -439,7 +439,7 @@ function CustomersPage() {
                 생성 중...
               </>
             ) : (
-              `선택한 ${selectedIds.size}명에게 완주 임박 메시지 초안 일괄 생성`
+              `선택한 ${selectedIds.size}명에게 메시지 초안 일괄 생성`
             )}
           </button>
         </div>
@@ -463,7 +463,7 @@ function CustomersPage() {
           storeCode={store_code}
           customers={filteredCustomers}
           onSelectCustomer={c => navigate(`/customers/${store_code}/${c.id}`)}
-          selectable={activeTab === 'near_completion'}
+          selectable={true}
           selectedIds={selectedIds}
           onToggleSelect={toggleSelect}
           onToggleSelectAll={toggleSelectAll}
