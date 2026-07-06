@@ -2,15 +2,19 @@ import React from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import { LayoutDashboard, Users, MessageSquare, Sparkles, Settings } from 'lucide-react';
 
-export default function BottomNav() {
+interface BottomNavProps {
+  nearCompletionCount?: number;
+}
+
+export default function BottomNav({ nearCompletionCount = 0 }: BottomNavProps) {
   const { store_code = 'demo' } = useParams();
 
   const navItems = [
-    { name: '홈', path: `/dashboard/${store_code}`, icon: LayoutDashboard },
-    { name: '고객', path: `/customers/${store_code}`, icon: Users },
-    { name: '메시지', path: `/messages/${store_code}`, icon: MessageSquare },
-    { name: '콘텐츠', path: `/content/${store_code}`, icon: Sparkles },
-    { name: '설정', path: `/settings/${store_code}`, icon: Settings },
+    { name: '홈', path: `/dashboard/${store_code}`, icon: LayoutDashboard, badge: 0 },
+    { name: '고객', path: `/customers/${store_code}?tab=near_completion`, icon: Users, badge: nearCompletionCount },
+    { name: '메시지', path: `/messages/${store_code}`, icon: MessageSquare, badge: 0 },
+    { name: '콘텐츠', path: `/content/${store_code}`, icon: Sparkles, badge: 0 },
+    { name: '설정', path: `/settings/${store_code}`, icon: Settings, badge: 0 },
   ];
 
   return (
@@ -31,8 +35,13 @@ export default function BottomNav() {
           >
             {({ isActive }) => (
               <>
-                <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-brand-50 text-brand-700' : 'bg-transparent text-stone-400'}`}>
+                <div className={`relative p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-brand-50 text-brand-700' : 'bg-transparent text-stone-400'}`}>
                   <Icon className="w-4.5 h-4.5 shrink-0" />
+                  {item.badge > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[1rem] h-4 px-1 rounded-full bg-amber-600 text-white text-[9px] font-bold">
+                      {item.badge}
+                    </span>
+                  )}
                 </div>
                 <span className="text-[9px] font-semibold tracking-wider">{item.name}</span>
                 {isActive && (

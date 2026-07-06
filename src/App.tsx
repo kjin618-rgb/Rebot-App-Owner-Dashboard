@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate, useLocation, useSearchParams, Outlet } from 'react-router-dom';
 import { 
   Users, 
   MessageSquare, 
@@ -41,6 +41,7 @@ import ContentEditor from './components/ContentEditor';
 function OwnerLayout() {
   const { store_code = 'demo' } = useParams();
   const [store, setStore] = useState<Store | null>(null);
+  const [nearCompletionCount, setNearCompletionCount] = useState(0);
 
   useEffect(() => {
     // Fetch store configuration from backend
@@ -51,12 +52,17 @@ function OwnerLayout() {
       })
       .then((data) => setStore(data))
       .catch((err) => console.error(err));
+
+    fetch(`/api/dashboard/${store_code}`)
+      .then((res) => res.json())
+      .then((data) => setNearCompletionCount(data.near_completion_count ?? 0))
+      .catch((err) => console.error(err));
   }, [store_code]);
 
   return (
     <div className="flex bg-[#fdfdfb] min-h-screen text-stone-800">
       {/* Responsive Sidebar */}
-      <Sidebar storeName={store?.store_name} />
+      <Sidebar storeName={store?.store_name} nearCompletionCount={nearCompletionCount} />
 
       {/* Main Panel Content Area */}
       <main className="flex-1 flex flex-col min-h-screen pb-20 md:pb-6 overflow-x-hidden">
@@ -90,7 +96,7 @@ function OwnerLayout() {
       </main>
 
       {/* Mobile Sticky Bottom Nav Bar */}
-      <BottomNav />
+      <BottomNav nearCompletionCount={nearCompletionCount} />
     </div>
   );
 }
@@ -179,11 +185,19 @@ function DashboardPage() {
 // ----------------------------------------------------
 // 3. CUSTOMERS PAGE VIEW
 // ----------------------------------------------------
+export function resolveInitialCustomerTab(tabParam: string | null): 'all' | 'watch' | 'danger' | 'churned' | 'near_completion' {
+  const validTabs = ['all', 'watch', 'danger', 'churned', 'near_completion'];
+  return (validTabs.includes(tabParam || '') ? tabParam : 'all') as any;
+}
+
 function CustomersPage() {
   const { store_code = 'demo' } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [customers, setCustomers] = useState<CustomerRow[]>([]);
-  const [activeTab, setActiveTab] = useState<'all' | 'watch' | 'danger' | 'churned' | 'near_completion'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'watch' | 'danger' | 'churned' | 'near_completion'>(
+    resolveInitialCustomerTab(searchParams.get('tab'))
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 

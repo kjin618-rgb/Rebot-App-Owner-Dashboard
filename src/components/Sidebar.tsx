@@ -4,17 +4,18 @@ import { LayoutDashboard, Users, MessageSquare, Sparkles, Settings, Coffee } fro
 
 interface SidebarProps {
   storeName?: string;
+  nearCompletionCount?: number;
 }
 
-export default function Sidebar({ storeName = '리봇 베이커리' }: SidebarProps) {
+export default function Sidebar({ storeName = '리봇 베이커리', nearCompletionCount = 0 }: SidebarProps) {
   const { store_code = 'demo' } = useParams();
 
   const navItems = [
-    { name: '홈', path: `/dashboard/${store_code}`, icon: LayoutDashboard },
-    { name: '고객 관리', path: `/customers/${store_code}`, icon: Users },
-    { name: '메시지 발송', path: `/messages/${store_code}`, icon: MessageSquare },
-    { name: '콘텐츠 생성', path: `/content/${store_code}`, icon: Sparkles },
-    { name: '설정', path: `/settings/${store_code}`, icon: Settings },
+    { name: '홈', path: `/dashboard/${store_code}`, icon: LayoutDashboard, badge: 0 },
+    { name: '고객 관리', path: `/customers/${store_code}?tab=near_completion`, icon: Users, badge: nearCompletionCount },
+    { name: '메시지 발송', path: `/messages/${store_code}`, icon: MessageSquare, badge: 0 },
+    { name: '콘텐츠 생성', path: `/content/${store_code}`, icon: Sparkles, badge: 0 },
+    { name: '설정', path: `/settings/${store_code}`, icon: Settings, badge: 0 },
   ];
 
   return (
@@ -53,6 +54,11 @@ export default function Sidebar({ storeName = '리봇 베이커리' }: SidebarPr
             >
               <Icon className="w-4.5 h-4.5 shrink-0" />
               <span>{item.name}</span>
+              {item.badge > 0 && (
+                <span className="ml-auto flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-600 text-white text-[10px] font-bold">
+                  {item.badge}
+                </span>
+              )}
             </NavLink>
           );
         })}
