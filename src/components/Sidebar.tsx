@@ -18,25 +18,25 @@ export default function Sidebar({ storeName = '리봇 베이커리' }: SidebarPr
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-[260px] h-screen bg-white border-r border-stone-200/60 sticky top-0 shrink-0 shadow-[1px_0_10px_rgba(139,115,85,0.02)]">
+    <aside className="hidden md:flex flex-col w-[300px] h-screen bg-navy sticky top-0 shrink-0 p-5">
       {/* Brand Logo Header */}
-      <div className="h-16 flex items-center px-6 gap-3 border-b border-stone-100">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-500 flex items-center justify-center shadow-md shadow-brand-500/20">
-          <Coffee className="w-5 h-5 text-white" />
+      <div className="h-16 flex items-center gap-3 border-b border-white/10 pb-5 mb-5">
+        <div className="w-14 h-14 rounded-lg bg-orange flex items-center justify-center shrink-0">
+          <Coffee className="w-6 h-6 text-yellow" />
         </div>
         <div className="min-w-0">
-          <h1 className="font-bold text-stone-900 tracking-tight text-sm leading-none flex items-center gap-1.5">
+          <h1 className="font-bold text-white tracking-tight text-heading-3 leading-none flex items-center gap-1.5">
             리봇 CRM
-            <span className="text-[10px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded-md border border-brand-100">AI</span>
+            <span className="text-micro font-bold text-navy bg-yellow px-1.5 py-0.5 rounded-md">AI</span>
           </h1>
-          <p className="text-[11px] text-stone-400 font-medium truncate mt-1" title={storeName}>
+          <p className="text-caption text-white/60 font-medium truncate mt-1" title={storeName}>
             {storeName}
           </p>
         </div>
       </div>
 
       {/* Nav List */}
-      <nav className="flex-1 p-4.5 space-y-1.5">
+      <nav className="flex-1 space-y-1.5">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -44,14 +44,14 @@ export default function Sidebar({ storeName = '리봇 베이커리' }: SidebarPr
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all duration-300 ${
+                `flex items-center gap-3 px-4 py-3 rounded-lg text-body-sm font-semibold tracking-wide transition-all duration-300 ${
                   isActive
-                    ? 'bg-brand-50 text-brand-800 border-l-[3px] border-brand-600 pl-3 shadow-[0_2px_8px_-1px_rgba(181,124,76,0.06)] font-bold'
-                    : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900 border-l-[3px] border-transparent pl-3'
+                    ? 'bg-orange text-white font-bold'
+                    : 'text-white/70 hover:bg-white/5 hover:text-white'
                 }`
               }
             >
-              <Icon className="w-4.5 h-4.5 shrink-0" />
+              <Icon className="w-5 h-5 shrink-0 text-yellow" />
               <span>{item.name}</span>
             </NavLink>
           );
@@ -59,10 +59,10 @@ export default function Sidebar({ storeName = '리봇 베이커리' }: SidebarPr
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-stone-100/80 bg-stone-50/30">
-        <div className="bg-stone-50/80 border border-stone-100 rounded-xl p-3 text-center shadow-inner">
-          <p className="text-[10px] font-bold text-stone-400 tracking-wider font-mono">STORE INSTANCE</p>
-          <p className="text-xs text-stone-600 font-semibold font-mono mt-0.5 truncate" title={store_code}>
+      <div className="pt-4 border-t border-white/10">
+        <div className="bg-white/[0.06] border border-white/[0.16] rounded-lg p-5 text-center shadow-[0_8px_24px_rgba(0,0,0,0.18)]">
+          <p className="text-micro font-bold text-white/50 tracking-wider font-mono">STORE INSTANCE</p>
+          <p className="text-caption text-white font-semibold font-mono mt-0.5 truncate" title={store_code}>
             {store_code}
           </p>
         </div>

@@ -23,6 +23,7 @@ import {
 
 // Types
 import { Store, CustomerRow, VisitLog, Message, ChurnStage, GeneratedPost } from './types';
+import { CHURN_COLOR } from './lib/churn';
 
 // Pre-built Components
 import Sidebar from './components/Sidebar';
@@ -54,30 +55,30 @@ function OwnerLayout() {
   }, [store_code]);
 
   return (
-    <div className="flex bg-[#fdfdfb] min-h-screen text-stone-800">
+    <div className="flex bg-white min-h-screen text-navy">
       {/* Responsive Sidebar */}
       <Sidebar storeName={store?.store_name} />
 
       {/* Main Panel Content Area */}
       <main className="flex-1 flex flex-col min-h-screen pb-20 md:pb-6 overflow-x-hidden">
         {/* Header Bar */}
-        <header className="h-16 border-b border-stone-200/50 bg-white/85 backdrop-blur-md flex items-center justify-between px-6 shrink-0 sticky top-0 z-40 shadow-[0_1px_12px_rgba(139,115,85,0.02)]">
+        <header className="h-16 border-b border-border-soft bg-white/85 backdrop-blur-md flex items-center justify-between px-6 shrink-0 sticky top-0 z-40 shadow-[0_1px_12px_rgba(28,47,58,0.04)]">
           <div className="flex items-center gap-3">
-            <div className="md:hidden w-8.5 h-8.5 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-500 flex items-center justify-center shadow-md shadow-brand-500/10">
-              <Coffee className="w-4.5 h-4.5 text-white" />
+            <div className="md:hidden w-8.5 h-8.5 rounded-lg bg-orange flex items-center justify-center">
+              <Coffee className="w-4.5 h-4.5 text-yellow" />
             </div>
             <div>
-              <h2 className="font-bold text-stone-900 text-sm leading-tight">
+              <h2 className="font-bold text-navy text-body-sm leading-tight">
                 {store?.store_name || '리봇 매장'}
               </h2>
-              <p className="text-[10px] text-stone-400 font-mono mt-0.5 tracking-wide">
+              <p className="text-micro text-muted font-mono mt-0.5 tracking-wide">
                 STORE ID: {store_code}
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
-            <span className="text-[11px] font-bold text-brand-800 bg-brand-50 border border-brand-100/50 px-3 py-1 rounded-full shadow-xs">
+            <span className="text-micro font-bold text-navy bg-yellow px-3 py-1 rounded-full">
               사장님 모드
             </span>
           </div>
@@ -128,8 +129,8 @@ function DashboardPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center space-y-3">
-        <div className="w-10 h-10 border-4 border-amber-100 border-t-amber-600 rounded-full animate-spin" />
-        <p className="text-sm text-stone-500 font-medium">대시보드 지표를 집계하고 있습니다...</p>
+        <div className="w-10 h-10 border-4 border-border border-t-orange rounded-full animate-spin" />
+        <p className="text-body-sm text-muted font-medium">대시보드 지표를 집계하고 있습니다...</p>
       </div>
     );
   }
@@ -139,16 +140,16 @@ function DashboardPage() {
       {/* Top Welcome Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight">사장님 대시보드</h1>
-          <p className="text-xs md:text-sm text-stone-500 font-normal">
+          <h1 className="text-heading-1 font-bold text-navy tracking-tight">사장님 대시보드</h1>
+          <p className="text-body-sm text-muted font-normal">
             재방문 주기가 흐려지는 단골 고객들을 모니터링하고 AI 솔루션으로 복귀를 유도하세요.
           </p>
         </div>
-        <button 
+        <button
           onClick={loadData}
-          className="self-start sm:self-center flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors"
+          className="self-start sm:self-center flex items-center gap-1.5 px-3 py-1.5 text-caption font-semibold rounded-md bg-white border border-border text-navy hover:bg-surface transition-colors"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <RefreshCw className="w-3.5 h-3.5 text-yellow" />
           새로고침
         </button>
       </div>
@@ -164,11 +165,11 @@ function DashboardPage() {
       <PerformanceCard metrics={metrics} />
 
       {/* Activity Feed and QR Kiosk Link */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-7">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <div className="lg:col-span-6">
           <ActivityFeed activities={dashboardData?.recent_activity || []} />
         </div>
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-6">
           <QRPreview storeCode={store_code} />
         </div>
       </div>
@@ -319,14 +320,14 @@ function CustomersPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight">고객 관리 리스트</h1>
-          <p className="text-xs md:text-sm text-stone-500">
+          <h1 className="text-heading-1 font-bold text-navy tracking-tight">고객 관리 리스트</h1>
+          <p className="text-body-sm text-muted">
             고객별 방문 이력과 스탬프 적립 상태를 체크하고 마케팅 수신동의 정보를 조회합니다.
           </p>
         </div>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="self-start sm:self-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+          className="self-start sm:self-center px-4 py-2 bg-orange hover:bg-orange/90 text-white rounded-md text-caption font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
         >
           <UserPlus className="w-4 h-4" />
           신규 고객 수동 추가
@@ -335,25 +336,25 @@ function CustomersPage() {
 
       {/* Success notification */}
       {successMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs rounded-xl font-medium flex items-center gap-2">
-          <CheckCircle className="w-4.5 h-4.5 text-emerald-600" />
+        <div className="p-4 bg-surface border border-border-soft text-navy text-xs rounded-xl font-medium flex items-center gap-2">
+          <CheckCircle className="w-4.5 h-4.5 text-yellow" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {/* Add Customer Form Toggle */}
       {showAddForm && (
-        <form onSubmit={handleAddCustomer} className="p-5 bg-white border border-stone-200 rounded-2xl shadow-sm max-w-md space-y-4">
+        <form onSubmit={handleAddCustomer} className="p-5 bg-white border border-border-soft rounded-2xl shadow-sm max-w-md space-y-4">
           <h3 className="font-bold text-stone-900 text-sm">신규 고객 정보 입력</h3>
           <div className="space-y-1.5">
-            <label className="block text-[10px] font-bold text-stone-500">휴대폰 번호</label>
+            <label className="block text-micro font-bold text-muted">휴대폰 번호</label>
             <input
               type="tel"
               required
               placeholder="예: 01012345678"
               value={phoneInput}
               onChange={e => setPhoneInput(e.target.value)}
-              className="w-full text-sm px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full text-sm px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -362,7 +363,7 @@ function CustomersPage() {
               id="mkt_consent"
               checked={consentInput}
               onChange={e => setConsentInput(e.target.checked)}
-              className="rounded border-stone-300 text-amber-600 focus:ring-amber-500 h-4 w-4"
+              className="rounded border-stone-300 text-orange focus:ring-orange h-4 w-4"
             />
             <label htmlFor="mkt_consent" className="text-xs text-stone-600 select-none">
               마케팅 및 리마인드 메시지 수신동의 포함
@@ -371,7 +372,7 @@ function CustomersPage() {
           <div className="flex gap-2 pt-1">
             <button
               type="submit"
-              className="flex-1 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+              className="flex-1 py-2 bg-orange hover:bg-orange/90 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
             >
               적립 및 고객 생성
             </button>
@@ -381,7 +382,7 @@ function CustomersPage() {
                 setShowAddForm(false);
                 setPhoneInput('');
               }}
-              className="px-4 py-2 border border-stone-200 hover:bg-stone-50 text-stone-500 text-xs font-semibold rounded-lg transition-colors"
+              className="px-4 py-2 border border-border hover:bg-surface text-muted text-xs font-semibold rounded-lg transition-colors"
             >
               취소
             </button>
@@ -405,8 +406,8 @@ function CustomersPage() {
               onClick={() => setActiveTab(tab.id as any)}
               className={`py-2 px-3 text-xs font-semibold rounded-lg transition-all whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'bg-stone-900 text-white'
-                  : 'text-stone-500 hover:bg-stone-50'
+                  ? 'bg-orange text-white'
+                  : 'text-muted hover:bg-surface'
               }`}
             >
               {tab.label}
@@ -422,18 +423,18 @@ function CustomersPage() {
             placeholder="이름 또는 전화번호 뒷자리 검색..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full md:w-64 text-xs pl-9 pr-4 py-2.5 bg-stone-50 border border-stone-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-xl transition-all"
+            className="w-full md:w-64 text-xs pl-9 pr-4 py-2.5 bg-stone-50 border border-stone-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange rounded-xl transition-all"
           />
         </div>
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="flex items-center justify-between gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-          <span className="text-xs font-semibold text-amber-900">{selectedIds.size}명 선택됨</span>
+        <div className="flex items-center justify-between gap-3 p-4 bg-surface border border-border rounded-xl">
+          <span className="text-xs font-semibold text-navy">{selectedIds.size}명 선택됨</span>
           <button
             onClick={handleBulkGenerate}
             disabled={bulkGenerating}
-            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 disabled:opacity-60 cursor-pointer"
+            className="px-4 py-2 bg-orange hover:bg-orange/90 text-white rounded-md text-caption font-bold shadow-sm flex items-center gap-2 disabled:opacity-60 cursor-pointer"
           >
             {bulkGenerating ? (
               <>
@@ -448,8 +449,8 @@ function CustomersPage() {
       )}
 
       {bulkResultMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs rounded-xl font-medium flex items-center gap-2">
-          <CheckCircle className="w-4.5 h-4.5 text-emerald-600" />
+        <div className="p-4 bg-surface border border-border-soft text-navy text-xs rounded-xl font-medium flex items-center gap-2">
+          <CheckCircle className="w-4.5 h-4.5 text-yellow" />
           <span>{bulkResultMsg}</span>
         </div>
       )}
@@ -457,8 +458,8 @@ function CustomersPage() {
       {/* Table Section */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 text-center space-y-2">
-          <div className="w-8 h-8 border-3 border-amber-100 border-t-amber-600 rounded-full animate-spin" />
-          <p className="text-xs text-stone-400">데이터를 로드 중입니다...</p>
+          <div className="w-8 h-8 border-3 border-border border-t-orange rounded-full animate-spin" />
+          <p className="text-caption text-muted">데이터를 로드 중입니다...</p>
         </div>
       ) : (
         <CustomerTable
@@ -597,18 +598,18 @@ function CustomerDetailPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
-        <div className="w-8 h-8 border-3 border-amber-100 border-t-amber-600 rounded-full animate-spin" />
-        <p className="text-xs text-stone-400">고객 상세 이력을 분석하고 있습니다...</p>
+        <div className="w-8 h-8 border-3 border-border border-t-orange rounded-full animate-spin" />
+        <p className="text-caption text-muted">고객 상세 이력을 분석하고 있습니다...</p>
       </div>
     );
   }
 
   if (!detail) {
     return (
-      <div className="p-8 text-center bg-white border border-stone-200 rounded-2xl">
-        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
-        <p className="text-stone-700 font-bold">고객 정보를 찾을 수 없습니다.</p>
-        <button onClick={() => navigate(-1)} className="mt-4 px-4 py-2 bg-stone-900 text-white rounded-lg text-xs font-semibold">
+      <div className="p-8 text-center bg-white border border-border-soft rounded-xl">
+        <AlertCircle className="w-12 h-12 text-yellow mx-auto mb-3" />
+        <p className="text-navy font-bold">고객 정보를 찾을 수 없습니다.</p>
+        <button onClick={() => navigate(-1)} className="mt-4 px-4 py-2 bg-navy text-white rounded-md text-caption font-semibold">
           뒤로 가기
         </button>
       </div>
@@ -620,36 +621,31 @@ function CustomerDetailPage() {
   return (
     <div className="space-y-6">
       {/* Back button */}
-      <button 
-        onClick={() => navigate(-1)} 
-        className="flex items-center gap-1.5 text-xs font-bold text-stone-500 hover:text-stone-800 transition-colors"
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-1.5 text-caption font-bold text-muted hover:text-navy transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft className="w-4 h-4 text-yellow" />
         고객 리스트로 돌아가기
       </button>
 
       {/* Hero card info */}
-      <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="bg-white border border-border-soft rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-800 flex items-center justify-center font-bold text-xl border border-amber-100">
+          <div className="w-14 h-14 rounded-xl bg-surface text-navy flex items-center justify-center font-bold text-heading-2 border border-border-soft">
             {c.name ? c.name[0] : '고'}
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-stone-900">{c.name || '미등록 단골 고객'}</h2>
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                c.churn_stage === 'safe' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
-                c.churn_stage === 'watch' ? 'bg-amber-50 text-amber-800 border-amber-100' :
-                c.churn_stage === 'danger' ? 'bg-red-50 text-red-800 border-red-100' :
-                'bg-stone-100 text-stone-600 border-stone-200'
-              }`}>
+              <h2 className="text-heading-3 font-bold text-navy">{c.name || '미등록 단골 고객'}</h2>
+              <span className={`px-2.5 py-0.5 rounded-full text-caption font-medium border ${CHURN_COLOR[c.churn_stage]}`}>
                 {c.churn_stage === 'safe' ? '정상 안전군' :
                  c.churn_stage === 'watch' ? '주의군 ⚠️' :
                  c.churn_stage === 'danger' ? '위험군 🚨' :
                  '이탈군 📉'}
               </span>
             </div>
-            <p className="text-xs text-stone-500 font-mono">가입 번호: {c.phone_masked}</p>
+            <p className="text-caption text-muted font-mono">가입 번호: {c.phone_masked}</p>
           </div>
         </div>
 
@@ -658,10 +654,10 @@ function CustomerDetailPage() {
           <button
             onClick={handleGenerateMessage}
             disabled={isGeneratingMessage || !c.marketing_consent}
-            className={`flex-1 md:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-all ${
+            className={`flex-1 md:flex-initial px-4 py-2.5 rounded-md text-caption font-bold flex items-center justify-center gap-2 transition-all ${
               c.marketing_consent
-                ? 'bg-amber-600 hover:bg-amber-700 text-white cursor-pointer'
-                : 'bg-stone-200 text-stone-400 cursor-not-allowed'
+                ? 'bg-orange hover:bg-orange/90 text-white cursor-pointer'
+                : 'bg-surface text-muted cursor-not-allowed'
             }`}
             title={!c.marketing_consent ? '마케팅 미동의 고객은 메시지를 기획할 수 없습니다' : 'AI 초안 만들기'}
           >
@@ -681,8 +677,8 @@ function CustomerDetailPage() {
       </div>
 
       {successMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs rounded-xl font-semibold flex items-center gap-2">
-          <CheckCircle className="w-4.5 h-4.5 text-emerald-600 animate-bounce" />
+        <div className="p-4 bg-surface border border-border-soft text-navy text-xs rounded-xl font-semibold flex items-center gap-2">
+          <CheckCircle className="w-4.5 h-4.5 text-yellow animate-bounce" />
           <span>{successMsg}</span>
         </div>
       )}
@@ -699,16 +695,16 @@ function CustomerDetailPage() {
                 <span className="text-[10px] font-bold text-stone-400 uppercase">누적 방문</span>
                 <p className="text-xl font-bold text-stone-800 mt-0.5">{c.total_visits}회</p>
               </div>
-              <div className="p-3.5 bg-amber-50/40 rounded-xl text-center">
-                <span className="text-[10px] font-bold text-amber-700 uppercase">보유 스탬프</span>
-                <p className="text-xl font-bold text-amber-800 mt-0.5">{c.total_stamps}개</p>
+              <div className="p-3.5 bg-surface rounded-xl text-center">
+                <span className="text-[10px] font-bold text-orange uppercase">보유 스탬프</span>
+                <p className="text-xl font-bold text-orange mt-0.5">{c.total_stamps}개</p>
               </div>
             </div>
 
             <div className="text-xs text-stone-500 space-y-1">
               <div className="flex justify-between">
                 <span>마케팅 수신동의</span>
-                <span className={`font-bold ${c.marketing_consent ? 'text-emerald-600' : 'text-stone-400'}`}>
+                <span className={`font-bold ${c.marketing_consent ? 'text-navy' : 'text-stone-400'}`}>
                   {c.marketing_consent ? '동의 완료' : '미동의'}
                 </span>
               </div>
@@ -734,7 +730,7 @@ function CustomerDetailPage() {
                   required
                   value={stampCount}
                   onChange={e => setStampCount(parseInt(e.target.value || '1'))}
-                  className="w-full text-sm px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full text-sm px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange"
                 />
               </div>
               <div className="space-y-1">
@@ -744,7 +740,7 @@ function CustomerDetailPage() {
                   value={menuInput}
                   onChange={e => setMenuInput(e.target.value)}
                   placeholder="예: 아메리카노, 소금빵"
-                  className="w-full text-sm px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full text-sm px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange"
                 />
               </div>
               <div className="space-y-1">
@@ -755,13 +751,13 @@ function CustomerDetailPage() {
                   value={visitDate}
                   onChange={e => setVisitDate(e.target.value)}
                   max={new Date().toISOString().slice(0, 10)}
-                  className="w-full text-sm px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full text-sm px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange"
                 />
               </div>
               <button
                 type="submit"
                 disabled={stampLoading}
-                className="w-full py-2.5 bg-stone-900 hover:bg-stone-800 disabled:bg-stone-300 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                className="w-full py-2.5 bg-navy hover:bg-navy/90 disabled:bg-stone-300 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
               >
                 {stampLoading ? '적립하는 중...' : '적립 완료'}
               </button>
@@ -777,16 +773,16 @@ function CustomerDetailPage() {
               value={noteText}
               onChange={e => setNoteText(e.target.value)}
               placeholder="고객에 대한 메모를 남겨보세요 (예: 선호 메뉴, 특이사항 등)"
-              className="w-full text-sm p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 leading-relaxed whitespace-pre-wrap"
+              className="w-full text-sm p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange leading-relaxed whitespace-pre-wrap"
             />
             <div className="flex items-center justify-between">
-              <span className={`text-xs font-medium ${noteText.length > 500 ? 'text-red-600' : 'text-stone-400'}`}>
+              <span className={`text-xs font-medium ${noteText.length > 500 ? 'text-navy' : 'text-stone-400'}`}>
                 {noteText.length} / 500자
               </span>
               <button
                 onClick={handleSaveNotes}
                 disabled={noteSaving || noteText.length > 500}
-                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 disabled:bg-stone-300 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                className="px-4 py-2 bg-navy hover:bg-navy/90 disabled:bg-stone-300 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
               >
                 {noteSaving ? '저장하는 중...' : '메모 저장'}
               </button>
@@ -818,7 +814,7 @@ function CustomerDetailPage() {
                         스탬프 적립 방문{log.menu ? ` · ${log.menu}` : ''}
                       </span>
                       <div className="flex items-center gap-3">
-                        <span className="font-semibold text-amber-600 font-mono">+{log.stamps_earned} 스탬프</span>
+                        <span className="font-semibold text-orange font-mono">+{log.stamps_earned} 스탬프</span>
                         <span className="text-stone-400 font-mono">{new Date(log.occurred_at).toLocaleString('ko-KR')}</span>
                       </div>
                     </div>
@@ -840,9 +836,7 @@ function CustomerDetailPage() {
                   {detail.messages.map((m: any) => (
                     <div key={m.id} className="p-3.5 bg-stone-50 border border-stone-100 rounded-xl space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                          m.status === 'sent' ? 'bg-emerald-50 text-emerald-800' : 'bg-stone-100 text-stone-500'
-                        }`}>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-surface text-navy">
                           {m.status === 'sent' ? '발송 완료' : '초안 대기'}
                         </span>
                         <span className="text-[10px] text-stone-400 font-mono">
@@ -1018,51 +1012,51 @@ function MessagesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight">AI 고객 제안 메시지</h1>
-        <p className="text-xs md:text-sm text-stone-500">
+        <h1 className="text-heading-1 font-bold text-navy tracking-tight">AI 고객 제안 메시지</h1>
+        <p className="text-body-sm text-muted">
           이탈 위험 고객을 분석해 자동으로 작성된 맞춤 리마인드 메시지 초안을 편집하고 전송합니다.
         </p>
       </div>
 
       {toastMsg && (
-        <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold rounded-xl flex items-center gap-2">
-          <CheckCircle className="w-4.5 h-4.5 text-amber-600 animate-pulse" />
+        <div className="p-4 bg-surface border border-border-soft text-navy text-caption font-semibold rounded-xl flex items-center gap-2">
+          <CheckCircle className="w-4.5 h-4.5 text-yellow animate-pulse" />
           <span>{toastMsg}</span>
         </div>
       )}
 
       {/* Editing Modal Dialog */}
       {editingMsg && (
-        <div className="fixed inset-0 bg-stone-900/45 flex items-center justify-center p-4 z-50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-xl border border-stone-100">
-            <h3 className="font-bold text-stone-900 text-base">메시지 내용 편집</h3>
+        <div className="fixed inset-0 bg-navy/45 flex items-center justify-center p-4 z-50 backdrop-blur-xs">
+          <div className="bg-white rounded-xl max-w-xl w-full p-6 space-y-4 shadow-xl border border-border-soft">
+            <h3 className="font-bold text-navy text-body-md">메시지 내용 편집</h3>
             <form onSubmit={handleSaveEdit} className="space-y-4">
               <textarea
                 rows={8}
                 value={editContent}
                 onChange={e => setEditContent(e.target.value)}
-                className="w-full text-sm p-4 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 leading-relaxed whitespace-pre-wrap"
+                className="w-full text-body-sm p-4 bg-surface border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange leading-relaxed whitespace-pre-wrap"
               />
-              <div className={`text-right text-xs font-medium ${editContent.length >= 900 ? 'text-amber-600' : 'text-stone-400'}`}>
+              <div className={`text-right text-caption font-medium ${editContent.length >= 900 ? 'text-orange' : 'text-muted'}`}>
                 {editContent.length.toLocaleString()} / 1,000자
               </div>
               {editContent.length >= 900 && (
-                <div className="flex items-start gap-2 bg-amber-50 rounded-lg p-3 text-xs text-amber-800 border border-amber-100/60">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+                <div className="flex items-start gap-2 bg-surface rounded-lg p-3 text-caption text-navy border border-border-soft">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-yellow" />
                   <span>메시지는 1,000자 이하로 작성해 주세요. 핵심 내용만 간결하게 정리하면 고객이 더 쉽게 읽을 수 있어요.</span>
                 </div>
               )}
               <div className="flex justify-end gap-2.5">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold cursor-pointer"
+                  className="px-4 py-2 bg-orange hover:bg-orange/90 text-white rounded-md text-caption font-bold cursor-pointer"
                 >
                   변경사항 저장
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingMsg(null)}
-                  className="px-4 py-2 border border-stone-200 hover:bg-stone-50 rounded-xl text-xs text-stone-500 font-semibold"
+                  className="px-4 py-2 border border-border hover:bg-surface rounded-md text-caption text-muted font-semibold"
                 >
                   취소
                 </button>
@@ -1074,8 +1068,8 @@ function MessagesPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 text-center space-y-2">
-          <div className="w-8 h-8 border-3 border-amber-100 border-t-amber-600 rounded-full animate-spin" />
-          <p className="text-xs text-stone-400">초안을 불러오고 있습니다...</p>
+          <div className="w-8 h-8 border-3 border-border border-t-orange rounded-full animate-spin" />
+          <p className="text-caption text-muted">초안을 불러오고 있습니다...</p>
         </div>
       ) : (
         <MessageList
@@ -1149,19 +1143,19 @@ function ContentPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight">AI 소셜 마케팅 기획</h1>
-        <p className="text-xs md:text-sm text-stone-500">
+        <h1 className="text-heading-1 font-bold text-navy tracking-tight">AI 소셜 마케팅 기획</h1>
+        <p className="text-body-sm text-muted">
           인스타그램 피드, 네이버 플레이스 소식글, 카카오 채널 포스팅 초안을 한 번에 AI가 목적에 맞추어 디자인합니다.
         </p>
       </div>
 
       {toastMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs font-semibold rounded-xl">
+        <div className="p-4 bg-surface border border-border-soft text-navy text-caption font-semibold rounded-xl">
           {toastMsg}
         </div>
       )}
 
-      <ContentEditor 
+      <ContentEditor
         onGenerate={handleGeneratePost}
         onSaveDraft={handleSaveDraft}
         savedDrafts={drafts}
@@ -1230,8 +1224,8 @@ function SettingsPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center space-y-2">
-        <div className="w-8 h-8 border-3 border-amber-100 border-t-amber-600 rounded-full animate-spin" />
-        <p className="text-xs text-stone-400">설정 데이터를 가져오고 있습니다...</p>
+        <div className="w-8 h-8 border-3 border-border border-t-orange rounded-full animate-spin" />
+        <p className="text-caption text-muted">설정 데이터를 가져오고 있습니다...</p>
       </div>
     );
   }
@@ -1239,48 +1233,48 @@ function SettingsPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight">매장 리워드 환경설정</h1>
-        <p className="text-xs md:text-sm text-stone-500">
+        <h1 className="text-heading-1 font-bold text-navy tracking-tight">매장 리워드 환경설정</h1>
+        <p className="text-body-sm text-muted">
           모바일 적립 QR 시스템 설정, 목표 스탬프 리워드 내용 및 AI 메시지 서명을 조율합니다.
         </p>
       </div>
 
       {toastMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs font-semibold rounded-xl">
+        <div className="p-4 bg-surface border border-border-soft text-navy text-caption font-semibold rounded-xl">
           {toastMsg}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-stone-200 p-6 space-y-5 shadow-sm">
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-border-soft p-6 space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-500 uppercase">매장명</label>
+            <label className="block text-micro font-bold text-muted uppercase">매장명</label>
             <input
               type="text"
               required
               value={storeName}
               onChange={e => setStoreName(e.target.value)}
-              className="w-full text-sm px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+              className="w-full text-sm px-3.5 py-2.5 bg-surface border border-border rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange transition-all"
             />
           </div>
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-500 uppercase">대표자명</label>
+            <label className="block text-micro font-bold text-muted uppercase">대표자명</label>
             <input
               type="text"
               required
               value={ownerName}
               onChange={e => setOwnerName(e.target.value)}
-              className="w-full text-sm px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+              className="w-full text-sm px-3.5 py-2.5 bg-surface border border-border rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange transition-all"
             />
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-stone-500 uppercase">목표 완성 스탬프 개수</label>
+          <label className="block text-micro font-bold text-muted uppercase">목표 완성 스탬프 개수</label>
           <select
             value={stampGoal}
             onChange={e => setStampGoal(parseInt(e.target.value))}
-            className="w-full text-sm px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full text-sm px-3.5 py-2.5 bg-white border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-orange"
           >
             {[5, 10, 12, 15, 20].map(val => (
               <option key={val} value={val}>{val}개 적립 시 완성</option>
@@ -1289,7 +1283,7 @@ function SettingsPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-stone-500 uppercase">완주 임박 알림 기준 (%)</label>
+          <label className="block text-micro font-bold text-muted uppercase">완주 임박 알림 기준 (%)</label>
           <input
             type="number"
             min="1"
@@ -1297,38 +1291,38 @@ function SettingsPage() {
             required
             value={nearCompletionThreshold}
             onChange={e => setNearCompletionThreshold(parseInt(e.target.value || '80'))}
-            className="w-full text-sm px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+            className="w-full text-sm px-3.5 py-2.5 bg-surface border border-border rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange transition-all"
           />
-          <p className="text-[11px] text-stone-400">스탬프를 이 비율(%) 이상 채운 고객을 "완주 임박"으로 분류합니다.</p>
+          <p className="text-[11px] text-muted">스탬프를 이 비율(%) 이상 채운 고객을 "완주 임박"으로 분류합니다.</p>
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-stone-500 uppercase">스탬프 완성 혜택 (리워드 설명)</label>
+          <label className="block text-micro font-bold text-muted uppercase">스탬프 완성 혜택 (리워드 설명)</label>
           <input
             type="text"
             required
             value={rewardDesc}
             onChange={e => setRewardDesc(e.target.value)}
             placeholder="예: 아메리카노 또는 소금빵 1개 무료 제공"
-            className="w-full text-sm px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+            className="w-full text-sm px-3.5 py-2.5 bg-surface border border-border rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange transition-all"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-stone-500 uppercase">AI 메시지 하단 사장 서명</label>
+          <label className="block text-micro font-bold text-muted uppercase">AI 메시지 하단 사장 서명</label>
           <input
             type="text"
             required
             value={signature}
             onChange={e => setSignature(e.target.value)}
             placeholder="예: 리봇 베이커리 사장 김리봇 드림"
-            className="w-full text-sm px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+            className="w-full text-sm px-3.5 py-2.5 bg-surface border border-border rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange transition-all"
           />
         </div>
 
         <button
           type="submit"
-          className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
+          className="w-full py-3 bg-orange hover:bg-orange/90 text-white rounded-md text-caption font-bold transition-all cursor-pointer"
         >
           환경설정 보관 및 저장
         </button>
