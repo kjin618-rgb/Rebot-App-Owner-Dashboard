@@ -7,6 +7,8 @@ export const CHURN_LABEL: Record<ChurnStage, string> = {
   churned: '장기 미방문',
 };
 
+// 사용자 확정 사항: 이탈 단계 배지는 단계별로 구분되는 색을 다시 사용한다
+// (디자인 시스템 v2의 "색상 대신 텍스트로만 구분" 규칙에 대한 명시적 예외).
 export const CHURN_COLOR: Record<ChurnStage, string> = {
   safe: 'bg-green-100 text-green-800 border-green-200',
   watch: 'bg-yellow-100 text-yellow-800 border-yellow-200',
