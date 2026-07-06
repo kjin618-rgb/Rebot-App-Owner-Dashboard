@@ -63,18 +63,18 @@ Task 1에서 `src/index.css`에 아래 신규 Tailwind 유틸리티가 생기고
   --font-sans: "Inter", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* DESIGN-v2.md 타이포 스케일 */
-  --font-size-display: 2.5rem;      /* 40px */
-  --font-size-heading-1: 2rem;      /* 32px */
-  --font-size-heading-2: 1.5rem;    /* 24px */
-  --font-size-heading-3: 1.125rem;  /* 18px */
-  --font-size-body-md: 1rem;        /* 16px */
-  --font-size-body-sm: 0.875rem;    /* 14px */
-  --font-size-caption: 0.8125rem;   /* 13px */
-  --font-size-micro: 0.75rem;       /* 12px */
-  --font-size-number-xl: 2.75rem;   /* 44px */
-  --font-size-number-lg: 2.25rem;   /* 36px */
-  --font-size-number-md: 1.75rem;   /* 28px */
+  /* DESIGN-v2.md 타이포 스케일 — Tailwind v4는 폰트 크기 유틸리티를 --text-* 네임스페이스로 생성한다(--font-size-*가 아님) */
+  --text-display: 2.5rem;      /* 40px */
+  --text-heading-1: 2rem;      /* 32px */
+  --text-heading-2: 1.5rem;    /* 24px */
+  --text-heading-3: 1.125rem;  /* 18px */
+  --text-body-md: 1rem;        /* 16px */
+  --text-body-sm: 0.875rem;    /* 14px */
+  --text-caption: 0.8125rem;   /* 13px */
+  --text-micro: 0.75rem;       /* 12px */
+  --text-number-xl: 2.75rem;   /* 44px */
+  --text-number-lg: 2.25rem;   /* 36px */
+  --text-number-md: 1.75rem;   /* 28px */
 
   /* DESIGN-v2.md 색상 팔레트 — Navy/Orange/Yellow 3색 제한 */
   --color-navy: #1C2F3A;
