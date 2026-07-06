@@ -1145,19 +1145,19 @@ function ContentPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight">AI 소셜 마케팅 기획</h1>
-        <p className="text-xs md:text-sm text-stone-500">
+        <h1 className="text-heading-1 font-bold text-navy tracking-tight">AI 소셜 마케팅 기획</h1>
+        <p className="text-body-sm text-muted">
           인스타그램 피드, 네이버 플레이스 소식글, 카카오 채널 포스팅 초안을 한 번에 AI가 목적에 맞추어 디자인합니다.
         </p>
       </div>
 
       {toastMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs font-semibold rounded-xl">
+        <div className="p-4 bg-surface border border-border-soft text-navy text-caption font-semibold rounded-xl">
           {toastMsg}
         </div>
       )}
 
-      <ContentEditor 
+      <ContentEditor
         onGenerate={handleGeneratePost}
         onSaveDraft={handleSaveDraft}
         savedDrafts={drafts}
@@ -1226,8 +1226,8 @@ function SettingsPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center space-y-2">
-        <div className="w-8 h-8 border-3 border-amber-100 border-t-amber-600 rounded-full animate-spin" />
-        <p className="text-xs text-stone-400">설정 데이터를 가져오고 있습니다...</p>
+        <div className="w-8 h-8 border-3 border-border border-t-orange rounded-full animate-spin" />
+        <p className="text-caption text-muted">설정 데이터를 가져오고 있습니다...</p>
       </div>
     );
   }
@@ -1235,48 +1235,48 @@ function SettingsPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight">매장 리워드 환경설정</h1>
-        <p className="text-xs md:text-sm text-stone-500">
+        <h1 className="text-heading-1 font-bold text-navy tracking-tight">매장 리워드 환경설정</h1>
+        <p className="text-body-sm text-muted">
           모바일 적립 QR 시스템 설정, 목표 스탬프 리워드 내용 및 AI 메시지 서명을 조율합니다.
         </p>
       </div>
 
       {toastMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs font-semibold rounded-xl">
+        <div className="p-4 bg-surface border border-border-soft text-navy text-caption font-semibold rounded-xl">
           {toastMsg}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-stone-200 p-6 space-y-5 shadow-sm">
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-border-soft p-6 space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-500 uppercase">매장명</label>
+            <label className="block text-micro font-bold text-muted uppercase">매장명</label>
             <input
               type="text"
               required
               value={storeName}
               onChange={e => setStoreName(e.target.value)}
-              className="w-full text-sm px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+              className="w-full text-sm px-3.5 py-2.5 bg-surface border border-border rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange transition-all"
             />
           </div>
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-stone-500 uppercase">대표자명</label>
+            <label className="block text-micro font-bold text-muted uppercase">대표자명</label>
             <input
               type="text"
               required
               value={ownerName}
               onChange={e => setOwnerName(e.target.value)}
-              className="w-full text-sm px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+              className="w-full text-sm px-3.5 py-2.5 bg-surface border border-border rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange transition-all"
             />
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-stone-500 uppercase">목표 완성 스탬프 개수</label>
+          <label className="block text-micro font-bold text-muted uppercase">목표 완성 스탬프 개수</label>
           <select
             value={stampGoal}
             onChange={e => setStampGoal(parseInt(e.target.value))}
-            className="w-full text-sm px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full text-sm px-3.5 py-2.5 bg-white border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-orange"
           >
             {[5, 10, 12, 15, 20].map(val => (
               <option key={val} value={val}>{val}개 적립 시 완성</option>
@@ -1285,7 +1285,7 @@ function SettingsPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-stone-500 uppercase">완주 임박 알림 기준 (%)</label>
+          <label className="block text-micro font-bold text-muted uppercase">완주 임박 알림 기준 (%)</label>
           <input
             type="number"
             min="1"
@@ -1293,38 +1293,38 @@ function SettingsPage() {
             required
             value={nearCompletionThreshold}
             onChange={e => setNearCompletionThreshold(parseInt(e.target.value || '80'))}
-            className="w-full text-sm px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+            className="w-full text-sm px-3.5 py-2.5 bg-surface border border-border rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange transition-all"
           />
-          <p className="text-[11px] text-stone-400">스탬프를 이 비율(%) 이상 채운 고객을 "완주 임박"으로 분류합니다.</p>
+          <p className="text-[11px] text-muted">스탬프를 이 비율(%) 이상 채운 고객을 "완주 임박"으로 분류합니다.</p>
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-stone-500 uppercase">스탬프 완성 혜택 (리워드 설명)</label>
+          <label className="block text-micro font-bold text-muted uppercase">스탬프 완성 혜택 (리워드 설명)</label>
           <input
             type="text"
             required
             value={rewardDesc}
             onChange={e => setRewardDesc(e.target.value)}
             placeholder="예: 아메리카노 또는 소금빵 1개 무료 제공"
-            className="w-full text-sm px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+            className="w-full text-sm px-3.5 py-2.5 bg-surface border border-border rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange transition-all"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-stone-500 uppercase">AI 메시지 하단 사장 서명</label>
+          <label className="block text-micro font-bold text-muted uppercase">AI 메시지 하단 사장 서명</label>
           <input
             type="text"
             required
             value={signature}
             onChange={e => setSignature(e.target.value)}
             placeholder="예: 리봇 베이커리 사장 김리봇 드림"
-            className="w-full text-sm px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+            className="w-full text-sm px-3.5 py-2.5 bg-surface border border-border rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange transition-all"
           />
         </div>
 
         <button
           type="submit"
-          className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
+          className="w-full py-3 bg-orange hover:bg-orange/90 text-white rounded-md text-caption font-bold transition-all cursor-pointer"
         >
           환경설정 보관 및 저장
         </button>
