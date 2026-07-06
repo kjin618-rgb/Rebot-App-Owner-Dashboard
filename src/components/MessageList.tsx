@@ -66,7 +66,7 @@ export default function MessageList({ messages, onSend, onDelete, onEdit, onRege
                       {CHURN_LABEL[msg.churn_stage]}
                     </span>
                     {msg.message_type === 'near_completion' && (
-                      <span className="px-2 py-0.5 rounded text-micro font-semibold bg-yellow text-navy">
+                      <span className="px-2 py-0.5 rounded text-micro font-semibold bg-blue-100 text-blue-800 border border-blue-200">
                         🎁 완주 임박
                       </span>
                     )}
